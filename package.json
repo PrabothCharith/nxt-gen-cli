@@ -4,7 +4,7 @@
   "description": "The ultimate Next.js scaffold CLI generator. Customize your stack with Prisma, React Query, Shadcn, HeroUI, and more in seconds.",
   "main": "dist/index.js",
   "bin": {
-    "nxt-gen-cli": "./bin/nxt-gen-cli"
+    "nxt-gen-cli": "bin/nxt-gen-cli"
   },
   "scripts": {
     "build": "tsc",
