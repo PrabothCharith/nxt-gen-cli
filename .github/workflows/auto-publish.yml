@@ -1,0 +1,100 @@
+name: Auto Publish Major Releases
+
+on:
+  push:
+    branches:
+      - main  # Trigger on every successful merge to main
+
+jobs:
+  check-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from package.json
+        id: version
+        run: |
+          # Read version from package.json
+          VERSION=$(node -p "require('./package.json').version")
+          echo "package_version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Parse major, minor, patch
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          MINOR=$(echo $VERSION | cut -d. -f2)
+          PATCH=$(echo $VERSION | cut -d. -f3)
+
+          echo "major=$MAJOR" >> $GITHUB_OUTPUT
+          echo "minor=$MINOR" >> $GITHUB_OUTPUT
+          echo "patch=$PATCH" >> $GITHUB_OUTPUT
+
+          # Check if this is a minor/major release (patch should be 0 and minor >= 2)
+          # Based on the rule: only publish when minor version changes with 2+ points difference
+          if [[ "$PATCH" == "0" && "$MINOR" -ge 2 ]]; then
+            echo "should_publish=true" >> $GITHUB_OUTPUT
+            echo "✅ Version $VERSION qualifies for auto-publish (minor >= 2, patch = 0)"
+          else
+            echo "should_publish=false" >> $GITHUB_OUTPUT
+            echo "⏭️ Version $VERSION does not qualify for auto-publish"
+          fi
+
+      - name: Setup Node.js
+        if: steps.version.outputs.should_publish == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        if: steps.version.outputs.should_publish == 'true'
+        run: npm ci
+
+      - name: Build package
+        if: steps.version.outputs.should_publish == 'true'
+        run: npm run build
+
+      - name: Publish to npm
+        if: steps.version.outputs.should_publish == 'true'
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Git Tag
+        if: steps.version.outputs.should_publish == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ steps.version.outputs.package_version }}" -m "Release v${{ steps.version.outputs.package_version }}"
+          git push origin "v${{ steps.version.outputs.package_version }}"
+
+      - name: Create GitHub Release
+        if: steps.version.outputs.should_publish == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.package_version }}
+          name: Release ${{ steps.version.outputs.package_version }}
+          body: |
+            ## 🚀 Auto-published Release v${{ steps.version.outputs.package_version }}
+            
+            This release was automatically published because the minor version is >= 2.
+            
+            ### Install
+            ```bash
+            npx nxt-gen-cli@${{ steps.version.outputs.package_version }}
+            ```
+            
+            Or install globally:
+            ```bash
+            npm install -g nxt-gen-cli@${{ steps.version.outputs.package_version }}
+            ```
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Skip notification
+        if: steps.version.outputs.should_publish == 'false'
+        run: |
+          echo "📌 Skipping publish for version ${{ steps.version.outputs.package_version }}"
+          echo "Reason: Patch releases (x.y.Z where Z > 0) or minor versions < 2 are ignored"
