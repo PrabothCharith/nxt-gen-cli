@@ -12,20 +12,32 @@ import {
   providersComponent,
 } from "./templates/base";
 import { exampleApiHandler, examplePage } from "./templates/examples";
+import {
+  detectPackageManager,
+  getInstallCommand,
+  getDlxCommand,
+  PackageManager,
+} from "./lib/pm";
 
 export const scaffoldProject = async (
   projectName: string,
   config: ProjectConfig
 ) => {
   const projectPath = path.resolve(process.cwd(), projectName);
+  const pm = detectPackageManager();
 
   console.log(
-    chalk.blue(`\nInitializing Next.js project in ${projectName}...\n`)
+    chalk.blue(
+      `\nInitializing Next.js project in ${projectName} using ${pm}...\n`
+    )
   );
 
+  const { command: dlxCmd, args: dlxArgs } = getDlxCommand(pm);
+
   await runCommand(
-    "npx",
+    dlxCmd,
     [
+      ...dlxArgs,
       "create-next-app@latest",
       projectName,
       "--typescript",
@@ -35,21 +47,21 @@ export const scaffoldProject = async (
       "--src-dir",
       "--import-alias",
       "@/*",
-      "--use-npm",
+      `--use-${pm}`,
     ],
     process.cwd()
   );
 
   await cleanupDefaultFiles(projectPath);
 
-  if (config.prisma) await setupPrisma(projectPath);
-  if (config.reactQuery) await setupReactQuery(projectPath);
-  if (config.axios) await setupAxios(projectPath);
+  if (config.prisma) await setupPrisma(projectPath, pm);
+  if (config.reactQuery) await setupReactQuery(projectPath, pm);
+  if (config.axios) await setupAxios(projectPath, pm);
 
-  await setupUI(projectPath, config.ui);
+  await setupUI(projectPath, config.ui, pm);
 
-  if (config.framerMotion) await setupFramerMotion(projectPath);
-  if (config.lucide) await setupLucide(projectPath);
+  if (config.framerMotion) await setupFramerMotion(projectPath, pm);
+  if (config.lucide) await setupLucide(projectPath, pm);
 
   if (config.examples !== "none") {
     await setupExamples(projectPath, config);
@@ -89,11 +101,17 @@ export default function Home() {
   await fs.remove(path.join(projectPath, "public/vercel.svg"));
 }
 
-async function setupPrisma(projectPath: string) {
+async function setupPrisma(projectPath: string, pm: PackageManager) {
   const spinner = ora("Setting up Prisma...").start();
-  await runCommand("npm", ["install", "prisma", "--save-dev"], projectPath);
-  await runCommand("npm", ["install", "@prisma/client"], projectPath);
-  await runCommand("npx", ["prisma", "init"], projectPath);
+
+  const installDev = getInstallCommand(pm, ["prisma"], true);
+  await runCommand(installDev.command, installDev.args, projectPath);
+
+  const installClient = getInstallCommand(pm, ["@prisma/client"], false);
+  await runCommand(installClient.command, installClient.args, projectPath);
+
+  const dlx = getDlxCommand(pm);
+  await runCommand(dlx.command, [...dlx.args, "prisma", "init"], projectPath);
 
   await fs.writeFile(
     path.join(projectPath, "prisma/schema.prisma"),
@@ -105,9 +123,11 @@ async function setupPrisma(projectPath: string) {
   spinner.succeed("Prisma setup complete");
 }
 
-async function setupReactQuery(projectPath: string) {
+async function setupReactQuery(projectPath: string, pm: PackageManager) {
   const spinner = ora("Setting up React Query...").start();
-  await runCommand("npm", ["install", "@tanstack/react-query"], projectPath);
+
+  const install = getInstallCommand(pm, ["@tanstack/react-query"], false);
+  await runCommand(install.command, install.args, projectPath);
 
   await fs.ensureDir(path.join(projectPath, "src/components/providers"));
   await fs.writeFile(
@@ -118,9 +138,11 @@ async function setupReactQuery(projectPath: string) {
   spinner.succeed("React Query setup complete");
 }
 
-async function setupAxios(projectPath: string) {
+async function setupAxios(projectPath: string, pm: PackageManager) {
   const spinner = ora("Setting up Axios...").start();
-  await runCommand("npm", ["install", "axios"], projectPath);
+
+  const install = getInstallCommand(pm, ["axios"], false);
+  await runCommand(install.command, install.args, projectPath);
 
   await fs.ensureDir(path.join(projectPath, "src/lib"));
   await fs.writeFile(path.join(projectPath, "src/lib/axios.ts"), axiosClient);
@@ -128,22 +150,17 @@ async function setupAxios(projectPath: string) {
   spinner.succeed("Axios setup complete");
 }
 
-async function setupUI(projectPath: string, ui: string) {
+async function setupUI(projectPath: string, ui: string, pm: PackageManager) {
   if (ui === "none") return;
   const spinner = ora(`Setting up UI (${ui})...`).start();
 
   if (ui === "shadcn" || ui === "both") {
-    await runCommand(
-      "npm",
-      [
-        "install",
-        "class-variance-authority",
-        "clsx",
-        "tailwind-merge",
-        "lucide-react",
-      ],
-      projectPath
+    const install = getInstallCommand(
+      pm,
+      ["class-variance-authority", "clsx", "tailwind-merge", "lucide-react"],
+      false
     );
+    await runCommand(install.command, install.args, projectPath);
 
     await fs.ensureDir(path.join(projectPath, "src/lib"));
     await fs.writeFile(
@@ -160,8 +177,12 @@ export function cn(...inputs: ClassValue[]) {
   }
 
   if (ui === "heroui" || ui === "both") {
-    const installArgs = ["install", "@heroui/react", "framer-motion"];
-    await runCommand("npm", installArgs, projectPath);
+    const install = getInstallCommand(
+      pm,
+      ["@heroui/react", "framer-motion"],
+      false
+    );
+    await runCommand(install.command, install.args, projectPath);
 
     // Handle Tailwind Config (v4 might not include it)
     const tailwindConfigPath = path.join(projectPath, "tailwind.config.ts");
@@ -227,12 +248,14 @@ export default config;
   spinner.succeed("UI setup complete");
 }
 
-async function setupFramerMotion(projectPath: string) {
-  await runCommand("npm", ["install", "framer-motion"], projectPath);
+async function setupFramerMotion(projectPath: string, pm: PackageManager) {
+  const install = getInstallCommand(pm, ["framer-motion"], false);
+  await runCommand(install.command, install.args, projectPath);
 }
 
-async function setupLucide(projectPath: string) {
-  await runCommand("npm", ["install", "lucide-react"], projectPath);
+async function setupLucide(projectPath: string, pm: PackageManager) {
+  const install = getInstallCommand(pm, ["lucide-react"], false);
+  await runCommand(install.command, install.args, projectPath);
 }
 
 async function setupExamples(projectPath: string, config: ProjectConfig) {
