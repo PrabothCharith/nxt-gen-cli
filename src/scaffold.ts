@@ -191,31 +191,6 @@ export const scaffoldProject = async (
 
         spinner.succeed("Dependencies installed successfully");
 
-        // Run post-install commands
-        if (config.husky) {
-          const huskySpinner = ora("Initializing Husky...").start();
-          const dlx = getDlxCommand(pm);
-          await runCommand(
-            dlx.command,
-            [...dlx.args, "husky", "init"],
-            projectPath
-          );
-          const preCommitPath = path.join(projectPath, ".husky/pre-commit");
-          await fs.writeFile(preCommitPath, "npx lint-staged");
-          huskySpinner.succeed("Husky initialized");
-        }
-
-        if (config.prisma) {
-          const prismaSpinner = ora("Initializing Prisma...").start();
-          const dlx = getDlxCommand(pm);
-          await runCommand(
-            dlx.command,
-            [...dlx.args, "prisma", "init"],
-            projectPath
-          );
-          prismaSpinner.succeed("Prisma initialized");
-        }
-
         if (config.playwright) {
           const playwrightSpinner = ora(
             "Installing Playwright browsers..."
@@ -656,7 +631,18 @@ async function setupQuality(projectPath: string, deps: DependencyCollector) {
     "*.{ts,tsx}": "eslint --cache --fix",
   };
 
+  // Add prepare script for Husky
+  if (!pkg.scripts) pkg.scripts = {};
+  pkg.scripts.prepare = "husky";
+
   await fs.writeJson(packageJsonPath, pkg, { spaces: 2 });
+
+  // Create Husky directory and pre-commit hook
+  await fs.ensureDir(path.join(projectPath, ".husky"));
+  await fs.writeFile(
+    path.join(projectPath, ".husky/pre-commit"),
+    "npx lint-staged\n"
+  );
 
   spinner.succeed("Code Quality tools setup complete");
 }
