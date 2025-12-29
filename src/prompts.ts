@@ -11,9 +11,11 @@ export interface ProjectConfig {
   docker: boolean;
   ci: boolean;
   husky: boolean;
+
   vitest: boolean;
   playwright: boolean;
   storybook: boolean;
+  license: "MIT" | "Apache" | "none";
 }
 
 export async function initialPrompt(
@@ -33,6 +35,7 @@ export async function initialPrompt(
     vitest: false,
     playwright: false,
     storybook: false,
+    license: "none",
     ...options,
   };
 
@@ -125,6 +128,17 @@ export async function initialPrompt(
       name: "storybook",
       message: "Initialize Storybook?",
       initial: false,
+    },
+
+    {
+      type: options.license !== undefined ? null : "select",
+      name: "license",
+      message: "Choose a license for your project:",
+      choices: [
+        { title: "MIT", value: "MIT" },
+        { title: "Apache 2.0", value: "Apache" },
+        { title: "None", value: "none" },
+      ],
     },
   ]);
 

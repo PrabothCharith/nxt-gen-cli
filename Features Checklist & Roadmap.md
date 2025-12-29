@@ -6,7 +6,7 @@ This document correlates to the planned improvements for `nxt-gen-cli`.
 - [x] **Multi-Manager Support**: Detect and support `pnpm`, `yarn`, and `bun` in addition to `npm`.
 
 ### Core Stability
-- [ ] **AST-Based Scaffolding**: Migrate from regex-based file editing to AST transforms (using `ts-morph`) for safer `layout.tsx` and config modifications.
+- [x] **AST-Based Scaffolding**: Migrate from regex-based file editing to AST transforms (using `ts-morph`) for safer `layout.tsx` and config modifications.
 - [x] **Validation**: Implement stricter input validation for project names.
 
 ### Testing & Quality
@@ -22,6 +22,7 @@ This document correlates to the planned improvements for `nxt-gen-cli`.
 ### Documentation & Extras
 - [x] **Storybook**: Add an option to scaffold Storybook for component development.
 - [x] **Environment Variables**: Auto-generate `.env.example` based on selected integrations.
+- [x] **Project Documentation**: Auto-generate `README.md` and `LICENSE` files.
 
 ### CLI Experience & UX (Tool Polish)
 - [x] **Visual Overhaul**: Implement `gradient-string` and `figlet` for a premium startup banner.

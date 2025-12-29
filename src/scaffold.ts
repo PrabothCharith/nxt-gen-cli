@@ -22,6 +22,7 @@ import {
   exampleTest,
   exampleE2E,
 } from "./templates/testing.js";
+import { readmeTemplate, mitLicense, apacheLicense } from "./templates/docs.js";
 import {
   detectPackageManager,
   getInstallCommand,
@@ -95,7 +96,10 @@ export const scaffoldProject = async (
 
   if (config.vitest || config.playwright)
     await setupTesting(projectPath, config, pm);
+
   if (config.storybook) await setupStorybook(projectPath, pm);
+
+  await setupDocumentation(projectPath, config, pm, projectName);
 
   console.log(
     boxen(
@@ -474,4 +478,54 @@ async function setupStorybook(projectPath: string, pm: PackageManager) {
   );
 
   spinner.succeed("Storybook setup complete");
+}
+
+async function setupDocumentation(
+  projectPath: string,
+  config: ProjectConfig,
+  pm: PackageManager,
+  projectName: string
+) {
+  const spinner = ora("Generating documentation...").start();
+
+  // Features list for README
+  const features: string[] = ["Next.js 14+", "Tailwind CSS", "TypeScript"];
+  if (config.prisma) features.push("Prisma ORM");
+  if (config.reactQuery) features.push("TanStack Query");
+  if (config.axios) features.push("Axios");
+  if (config.ui === "shadcn" || config.ui === "both")
+    features.push("Shadcn UI");
+  if (config.ui === "heroui" || config.ui === "both") features.push("HeroUI");
+  if (config.framerMotion) features.push("Framer Motion");
+  if (config.lucide) features.push("Lucide React Icons");
+  if (config.docker) features.push("Docker Support");
+  if (config.ci) features.push("GitHub Actions CI");
+  if (config.husky) features.push("Husky & Lint-staged");
+  if (config.vitest) features.push("Vitest Testing");
+  if (config.playwright) features.push("Playwright E2E Testing");
+  if (config.storybook) features.push("Storybook");
+
+  // README
+  await fs.writeFile(
+    path.join(projectPath, "README.md"),
+    readmeTemplate(projectName, pm, features)
+  );
+
+  // LICENSE
+  const year = new Date().getFullYear();
+  const author = "The Authors";
+
+  if (config.license === "MIT") {
+    await fs.writeFile(
+      path.join(projectPath, "LICENSE"),
+      mitLicense(year, author)
+    );
+  } else if (config.license === "Apache") {
+    await fs.writeFile(
+      path.join(projectPath, "LICENSE"),
+      apacheLicense(year, author)
+    );
+  }
+
+  spinner.succeed("Documentation generated");
 }
