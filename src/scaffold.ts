@@ -12,7 +12,9 @@ import {
   queryProvider,
   providersComponent,
 } from "./templates/base.js";
+
 import { exampleApiHandler, examplePage } from "./templates/examples.js";
+import { dockerfile, ciWorkflow, envExample } from "./templates/devops.js";
 import {
   detectPackageManager,
   getInstallCommand,
@@ -69,6 +71,19 @@ export const scaffoldProject = async (
   }
 
   await setupProviders(projectPath, config);
+
+  if (config.docker || config.ci) await setupDevOps(projectPath, config);
+
+  // Create .env.example (Environment Variables)
+  await fs.writeFile(
+    path.join(projectPath, ".env.example"),
+    envExample(
+      config.prisma,
+      config.examples === "auth" || config.examples === "both"
+    )
+  );
+
+  if (config.husky) await setupQuality(projectPath, pm);
 
   console.log(
     boxen(
@@ -332,4 +347,69 @@ async function setupProviders(projectPath: string, config: ProjectConfig) {
   );
 
   await fs.writeFile(layoutPath, layoutContent);
+}
+
+async function setupDevOps(projectPath: string, config: ProjectConfig) {
+  const spinner = ora("Setting up DevOps...").start();
+
+  if (config.docker) {
+    await fs.writeFile(path.join(projectPath, "Dockerfile"), dockerfile);
+    // Add .dockerignore
+    await fs.writeFile(
+      path.join(projectPath, ".dockerignore"),
+      `Dockerfile
+.dockerignore
+node_modules
+npm-debug.log
+README.md
+.next
+.git`
+    );
+  }
+
+  if (config.ci) {
+    await fs.ensureDir(path.join(projectPath, ".github/workflows"));
+    await fs.writeFile(
+      path.join(projectPath, ".github/workflows/ci.yml"),
+      ciWorkflow
+    );
+  }
+
+  spinner.succeed("DevOps setup complete");
+}
+
+async function setupQuality(projectPath: string, pm: PackageManager) {
+  const spinner = ora("Setting up Code Quality tools...").start();
+
+  // Install husky and lint-staged
+  const installDeps = getInstallCommand(pm, ["husky", "lint-staged"], true);
+  await runCommand(installDeps.command, installDeps.args, projectPath);
+
+  // Initialize Husky
+  if (pm === "npm") {
+    await runCommand("npx", ["husky", "init"], projectPath);
+  } else {
+    // pnpm dlx husky init, etc.
+    // husky init updates package.json scripts "prepare": "husky" and creates .husky/pre-commit
+    const dlx = getDlxCommand(pm);
+    await runCommand(dlx.command, [...dlx.args, "husky", "init"], projectPath);
+  }
+
+  // Setup lint-staged in package.json
+  const packageJsonPath = path.join(projectPath, "package.json");
+  const pkg = await fs.readJson(packageJsonPath);
+
+  // Let's just use "next lint" or "eslint"
+  pkg["lint-staged"] = {
+    "*.{ts,tsx}": "eslint --cache --fix",
+  };
+
+  await fs.writeJson(packageJsonPath, pkg, { spaces: 2 });
+
+  // Add pre-commit hook content for lint-staged
+  // husky init creates 'npm test' in pre-commit by default in v9
+  const preCommitPath = path.join(projectPath, ".husky/pre-commit");
+  await fs.writeFile(preCommitPath, "npx lint-staged");
+
+  spinner.succeed("Code Quality tools setup complete");
 }
