@@ -10,8 +10,8 @@ This document correlates to the planned improvements for `nxt-gen-cli`.
 - [x] **Validation**: Implement stricter input validation for project names.
 
 ### Testing & Quality
-- [ ] **Integrated Testing**: Include optional setup for **Vitest** and **React Testing Library**.
-- [ ] **E2E Testing**: Add optional **Playwright** configuration.
+- [x] **Integrated Testing**: Include optional setup for **Vitest** and **React Testing Library**.
+- [x] **E2E Testing**: Add optional **Playwright** configuration.
 - [x] **Code Quality**: Add boilerplate for `husky` and `lint-staged` pre-commit hooks.
 
 ### CI/CD & DevOps
@@ -20,7 +20,7 @@ This document correlates to the planned improvements for `nxt-gen-cli`.
 - [ ] **Automated Versioning**: Implement release workflow using Changesets or Semantic Release.
 
 ### Documentation & Extras
-- [ ] **Storybook**: Add an option to scaffold Storybook for component development.
+- [x] **Storybook**: Add an option to scaffold Storybook for component development.
 - [x] **Environment Variables**: Auto-generate `.env.example` based on selected integrations.
 
 ### CLI Experience & UX (Tool Polish)

@@ -28,6 +28,7 @@ import {
   getDlxCommand,
   PackageManager,
 } from "./lib/pm.js";
+import { addProviderToLayout, configureTailwindForHeroUI } from "./lib/ast.js";
 
 export const scaffoldProject = async (
   projectName: string,
@@ -253,39 +254,7 @@ export default config;
 `
       );
     } else {
-      let tailwindConfig = await fs.readFile(tailwindConfigPath, "utf-8");
-
-      // Add import
-      if (!tailwindConfig.includes("@heroui/react")) {
-        tailwindConfig =
-          "import {heroui} from '@heroui/react';\n" + tailwindConfig;
-      }
-
-      // Add plugin
-      if (tailwindConfig.includes("plugins: [")) {
-        if (!tailwindConfig.includes("heroui()")) {
-          tailwindConfig = tailwindConfig.replace(
-            "plugins: [",
-            "plugins: [heroui(),"
-          );
-        }
-      } else {
-        console.warn(
-          "Could not inject HeroUI plugin into tailwind.config.ts automatically. Please check manually."
-        );
-      }
-
-      // Add content
-      if (tailwindConfig.includes("content: [")) {
-        if (!tailwindConfig.includes("@heroui/theme")) {
-          tailwindConfig = tailwindConfig.replace(
-            "content: [",
-            'content: [\n    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",'
-          );
-        }
-      }
-
-      await fs.writeFile(tailwindConfigPath, tailwindConfig);
+      await configureTailwindForHeroUI(projectPath);
     }
   }
   spinner.succeed("UI setup complete");
@@ -342,22 +311,8 @@ async function setupProviders(projectPath: string, config: ProjectConfig) {
     providersComponent(config)
   );
 
-  // 2. Wrap layout
-  const layoutPath = path.join(projectPath, "src/app/layout.tsx");
-  let layoutContent = await fs.readFile(layoutPath, "utf-8");
-
-  // Add import
-  layoutContent =
-    "import { Providers } from '@/components/providers';\n" + layoutContent;
-
-  // Wrap children
-  // This is simple string replacement. A valid layout usually has {children} inside body.
-  layoutContent = layoutContent.replace(
-    "{children}",
-    "<Providers>{children}</Providers>"
-  );
-
-  await fs.writeFile(layoutPath, layoutContent);
+  // 2. Wrap layout using AST
+  await addProviderToLayout(projectPath);
 }
 
 async function setupDevOps(projectPath: string, config: ProjectConfig) {
