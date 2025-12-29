@@ -12,6 +12,19 @@ import {
   providersComponent,
 } from "./templates/base";
 import { exampleApiHandler, examplePage } from "./templates/examples";
+import {
+  nextAuthFile,
+  nextAuthRoute,
+  nextAuthMiddleware,
+  clerkMiddleware,
+} from "./templates/auth";
+import { profileFormExample } from "./templates/forms";
+import {
+  i18nRequest,
+  i18nMiddleware,
+  englishMessages,
+  germanMessages,
+} from "./templates/i18n";
 
 export const scaffoldProject = async (
   projectName: string,
@@ -46,6 +59,10 @@ export const scaffoldProject = async (
   if (config.reactQuery) await setupReactQuery(projectPath);
   if (config.axios) await setupAxios(projectPath);
 
+  if (config.auth !== "none") await setupAuth(projectPath, config);
+  if (config.forms) await setupForms(projectPath, config);
+  if (config.i18n) await setupI18n(projectPath, config);
+
   await setupUI(projectPath, config.ui);
 
   if (config.framerMotion) await setupFramerMotion(projectPath);
@@ -56,6 +73,10 @@ export const scaffoldProject = async (
   }
 
   await setupProviders(projectPath, config);
+
+  if (config.unitTesting) await setupUnitTesting(projectPath);
+  if (config.e2eTesting) await setupE2ETesting(projectPath);
+  if (config.codeQuality) await setupCodeQuality(projectPath);
 
   console.log(chalk.green(`\nSuccessfully created project ${projectName}!\n`));
   console.log(chalk.cyan(`Created by Praboth Charith (https://praboth.me)\n`));
@@ -292,4 +313,321 @@ async function setupProviders(projectPath: string, config: ProjectConfig) {
   );
 
   await fs.writeFile(layoutPath, layoutContent);
+}
+
+async function setupUnitTesting(projectPath: string) {
+  const spinner = ora("Setting up Vitest & React Testing Library...").start();
+
+  await runCommand(
+    "npm",
+    [
+      "install",
+      "vitest",
+      "@vitejs/plugin-react",
+      "@testing-library/react",
+      "@testing-library/dom",
+      "@testing-library/jest-dom",
+      "jsdom",
+      "--save-dev",
+    ],
+    projectPath
+  );
+
+  // vital.config.ts
+  await fs.writeFile(
+    path.join(projectPath, "vitest.config.ts"),
+    `
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+ 
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/tests/setup.ts',
+    alias: {
+        '@': path.resolve(__dirname, './src')
+    }
+  },
+})
+`
+  );
+
+  // setup file
+  await fs.ensureDir(path.join(projectPath, "src/tests"));
+  await fs.writeFile(
+    path.join(projectPath, "src/tests/setup.ts"),
+    `
+import '@testing-library/jest-dom'
+`
+  );
+
+  // Add script to package.json
+  const packageJsonPath = path.join(projectPath, "package.json");
+  const packageJson = await fs.readJson(packageJsonPath);
+  packageJson.scripts.test = "vitest";
+  packageJson.scripts["test:watch"] = "vitest";
+  packageJson.scripts["test:ui"] = "vitest --ui";
+  await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+
+  spinner.succeed("Unit testing setup complete");
+}
+
+async function setupE2ETesting(projectPath: string) {
+  const spinner = ora("Setting up Playwright...").start();
+
+  // We can't easily run 'npm init playwright' non-interactively without side effects sometimes,
+  // so we'll install manually and write the config.
+
+  await runCommand(
+    "npm",
+    ["install", "@playwright/test", "--save-dev"],
+    projectPath
+  );
+
+  await fs.writeFile(
+    path.join(projectPath, "playwright.config.ts"),
+    `
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './e2e',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: 'html',
+  use: {
+    baseURL: 'http://localhost:3000',
+    trace: 'on-first-retry',
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
+  ],
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+  },
+});
+`
+  );
+
+  await fs.ensureDir(path.join(projectPath, "e2e"));
+  await fs.writeFile(
+    path.join(projectPath, "e2e/example.spec.ts"),
+    `
+import { test, expect } from '@playwright/test';
+
+test('has title', async ({ page }) => {
+  await page.goto('/');
+  await expect(page).toHaveTitle(/Create Next App/);
+});
+`
+  );
+
+  // Add scripts
+  const packageJsonPath = path.join(projectPath, "package.json");
+  const packageJson = await fs.readJson(packageJsonPath);
+  packageJson.scripts["test:e2e"] = "playwright test";
+  packageJson.scripts["test:e2e:ui"] = "playwright test --ui";
+  await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+
+  spinner.succeed("E2E testing setup complete");
+}
+
+async function setupCodeQuality(projectPath: string) {
+  const spinner = ora("Setting up Husky & Lint-staged...").start();
+
+  await runCommand(
+    "npm",
+    ["install", "husky", "lint-staged", "--save-dev"],
+    projectPath
+  );
+
+  // Initialize husky
+  await runCommand("npx", ["husky", "init"], projectPath);
+
+  // Create pre-commit hook
+  // 'husky init' creates .husky/pre-commit with "npm test". We want lint-staged.
+  await fs.writeFile(
+    path.join(projectPath, ".husky/pre-commit"),
+    "npx lint-staged\n"
+  );
+
+  // Add lint-staged config to package.json
+  const packageJsonPath = path.join(projectPath, "package.json");
+  const packageJson = await fs.readJson(packageJsonPath);
+  packageJson["lint-staged"] = {
+    "*.{js,ts,jsx,tsx}": [
+      "eslint --fix",
+      "prettier --write", // Assuming prettier might be there, or just eslint
+    ],
+  };
+  // Ensure prettier is installed if we use it, but for now let's just stick to what we know is there + safe defaults
+  // Safe default for next.js is just next lint
+  packageJson["lint-staged"] = {
+    "*.{ts,tsx}": ["eslint --fix"],
+  };
+
+  await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+
+  spinner.succeed("Code quality setup complete");
+}
+
+async function setupAuth(projectPath: string, config: ProjectConfig) {
+  const spinner = ora("Setting up Authentication...").start();
+
+  if (config.auth === "next-auth") {
+    await runCommand("npm", ["install", "next-auth@beta"], projectPath);
+
+    // auth.ts
+    await fs.writeFile(path.join(projectPath, "src/auth.ts"), nextAuthFile);
+
+    // API route
+    await fs.ensureDir(
+      path.join(projectPath, "src/app/api/auth/[...nextauth]")
+    );
+    await fs.writeFile(
+      path.join(projectPath, "src/app/api/auth/[...nextauth]/route.ts"),
+      nextAuthRoute
+    );
+
+    // Middleware
+    await fs.writeFile(
+      path.join(projectPath, "src/middleware.ts"),
+      nextAuthMiddleware
+    );
+  } else if (config.auth === "clerk") {
+    await runCommand("npm", ["install", "@clerk/nextjs"], projectPath);
+
+    // Middleware
+    await fs.writeFile(
+      path.join(projectPath, "src/middleware.ts"),
+      clerkMiddleware
+    );
+
+    // Wrap layout with ClerkProvider
+    const layoutPath = path.join(projectPath, "src/app/layout.tsx");
+    let layoutContent = await fs.readFile(layoutPath, "utf-8");
+
+    if (!layoutContent.includes("ClerkProvider")) {
+      layoutContent =
+        "import { ClerkProvider } from '@clerk/nextjs';\n" + layoutContent;
+      // Wrap generic html tag
+      layoutContent = layoutContent.replace("<html", "<ClerkProvider>\n<html");
+      layoutContent = layoutContent.replace(
+        "</html>",
+        "</html>\n</ClerkProvider>"
+      );
+
+      await fs.writeFile(layoutPath, layoutContent);
+    }
+  }
+
+  spinner.succeed("Authentication setup complete");
+}
+
+async function setupForms(projectPath: string, config: ProjectConfig) {
+  const spinner = ora("Setting up Forms & Validation...").start();
+
+  await runCommand(
+    "npm",
+    ["install", "react-hook-form", "zod", "@hookform/resolvers"],
+    projectPath
+  );
+
+  await fs.ensureDir(path.join(projectPath, "src/components"));
+  await fs.writeFile(
+    path.join(projectPath, "src/components/profile-form.tsx"),
+    profileFormExample
+  );
+
+  spinner.succeed("Forms & Validation setup complete");
+}
+
+async function setupI18n(projectPath: string, config: ProjectConfig) {
+  const spinner = ora("Setting up Internationalization...").start();
+  await runCommand("npm", ["install", "next-intl"], projectPath);
+
+  // 1. Move app files to [locale]
+  const appDir = path.join(projectPath, "src/app");
+  const localeDir = path.join(appDir, "[locale]");
+  await fs.ensureDir(localeDir);
+
+  if (await fs.pathExists(path.join(appDir, "page.tsx"))) {
+    await fs.move(
+      path.join(appDir, "page.tsx"),
+      path.join(localeDir, "page.tsx")
+    );
+  }
+
+  if (await fs.pathExists(path.join(appDir, "layout.tsx"))) {
+    await fs.move(
+      path.join(appDir, "layout.tsx"),
+      path.join(localeDir, "layout.tsx")
+    );
+
+    // Fix imports in new layout file
+    // e.g. import ... from "./globals.css" -> "../globals.css"
+    // or import { Providers } from "@/components/..." -> this uses alias, so it is fine.
+    // Main concern is "./globals.css"
+
+    const newLayoutPath = path.join(localeDir, "layout.tsx");
+    let layoutContent = await fs.readFile(newLayoutPath, "utf-8");
+    layoutContent = layoutContent.replace(
+      '"./globals.css"',
+      '"../globals.css"'
+    );
+    layoutContent = layoutContent.replace(
+      "'./globals.css'",
+      "'../globals.css'"
+    );
+    await fs.writeFile(newLayoutPath, layoutContent);
+  }
+
+  // 2. Create i18n/request.ts
+  await fs.ensureDir(path.join(projectPath, "src/i18n"));
+  await fs.writeFile(
+    path.join(projectPath, "src/i18n/request.ts"),
+    i18nRequest
+  );
+
+  // 3. Messages
+  await fs.ensureDir(path.join(projectPath, "messages"));
+  await fs.writeFile(
+    path.join(projectPath, "messages/en.json"),
+    englishMessages
+  );
+  await fs.writeFile(
+    path.join(projectPath, "messages/de.json"),
+    germanMessages
+  );
+
+  // 4. Middleware
+  const middlewarePath = path.join(projectPath, "src/middleware.ts");
+  if (await fs.pathExists(middlewarePath)) {
+    console.warn(
+      chalk.yellow(
+        "Middleware already exists (from Auth?). Skipped creating i18n middleware. Please manually configure next-intl middleware."
+      )
+    );
+  } else {
+    await fs.writeFile(middlewarePath, i18nMiddleware);
+  }
+
+  spinner.succeed("Internationalization setup complete");
 }
