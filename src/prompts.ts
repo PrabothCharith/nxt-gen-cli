@@ -11,6 +11,9 @@ export interface ProjectConfig {
   docker: boolean;
   ci: boolean;
   husky: boolean;
+  vitest: boolean;
+  playwright: boolean;
+  storybook: boolean;
 }
 
 export async function initialPrompt(
@@ -27,6 +30,9 @@ export async function initialPrompt(
     docker: false,
     ci: false,
     husky: false,
+    vitest: false,
+    playwright: false,
+    storybook: false,
     ...options,
   };
 
@@ -101,6 +107,24 @@ export async function initialPrompt(
       name: "husky",
       message: "Setup Husky and Lint-staged for code quality?",
       initial: true,
+    },
+    {
+      type: options.vitest !== undefined ? null : "confirm",
+      name: "vitest",
+      message: "Install Vitest & React Testing Library?",
+      initial: false,
+    },
+    {
+      type: options.playwright !== undefined ? null : "confirm",
+      name: "playwright",
+      message: "Install Playwright for E2E testing?",
+      initial: false,
+    },
+    {
+      type: options.storybook !== undefined ? null : "confirm",
+      name: "storybook",
+      message: "Initialize Storybook?",
+      initial: false,
     },
   ]);
 

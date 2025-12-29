@@ -12,16 +12,16 @@ This document correlates to the planned improvements for `nxt-gen-cli`.
 ### Testing & Quality
 - [ ] **Integrated Testing**: Include optional setup for **Vitest** and **React Testing Library**.
 - [ ] **E2E Testing**: Add optional **Playwright** configuration.
-- [ ] **Code Quality**: Add boilerplate for `husky` and `lint-staged` pre-commit hooks.
+- [x] **Code Quality**: Add boilerplate for `husky` and `lint-staged` pre-commit hooks.
 
 ### CI/CD & DevOps
-- [ ] **GitHub Actions**: Generate a default CI pipeline (`.github/workflows/ci.yml`) for the user's new project.
-- [ ] **Docker Support**: Add option to generate a production-ready `Dockerfile`.
+- [x] **GitHub Actions**: Generate a default CI pipeline (`.github/workflows/ci.yml`) for the user's new project.
+- [x] **Docker Support**: Add option to generate a production-ready `Dockerfile`.
 - [ ] **Automated Versioning**: Implement release workflow using Changesets or Semantic Release.
 
 ### Documentation & Extras
 - [ ] **Storybook**: Add an option to scaffold Storybook for component development.
-- [ ] **Environment Variables**: Auto-generate `.env.example` based on selected integrations.
+- [x] **Environment Variables**: Auto-generate `.env.example` based on selected integrations.
 
 ### CLI Experience & UX (Tool Polish)
 - [x] **Visual Overhaul**: Implement `gradient-string` and `figlet` for a premium startup banner.

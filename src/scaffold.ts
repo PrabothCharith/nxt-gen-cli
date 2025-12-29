@@ -16,6 +16,13 @@ import {
 import { exampleApiHandler, examplePage } from "./templates/examples.js";
 import { dockerfile, ciWorkflow, envExample } from "./templates/devops.js";
 import {
+  vitestConfig,
+  vitestSetup,
+  playwrightConfig,
+  exampleTest,
+  exampleE2E,
+} from "./templates/testing.js";
+import {
   detectPackageManager,
   getInstallCommand,
   getDlxCommand,
@@ -84,6 +91,10 @@ export const scaffoldProject = async (
   );
 
   if (config.husky) await setupQuality(projectPath, pm);
+
+  if (config.vitest || config.playwright)
+    await setupTesting(projectPath, config, pm);
+  if (config.storybook) await setupStorybook(projectPath, pm);
 
   console.log(
     boxen(
@@ -412,4 +423,100 @@ async function setupQuality(projectPath: string, pm: PackageManager) {
   await fs.writeFile(preCommitPath, "npx lint-staged");
 
   spinner.succeed("Code Quality tools setup complete");
+}
+
+async function setupTesting(
+  projectPath: string,
+  config: ProjectConfig,
+  pm: PackageManager
+) {
+  const spinner = ora("Setting up Testing environment...").start();
+
+  if (config.vitest) {
+    const installDev = getInstallCommand(
+      pm,
+      [
+        "vitest",
+        "@vitejs/plugin-react",
+        "jsdom",
+        "@testing-library/react",
+        "@testing-library/jest-dom",
+      ],
+      true
+    );
+    await runCommand(installDev.command, installDev.args, projectPath);
+
+    await fs.writeFile(
+      path.join(projectPath, "vitest.config.ts"),
+      vitestConfig
+    );
+    await fs.writeFile(path.join(projectPath, "vitest.setup.ts"), vitestSetup);
+
+    // Add test script
+    const pkgPath = path.join(projectPath, "package.json");
+    const pkg = await fs.readJson(pkgPath);
+    pkg.scripts.test = "vitest";
+    await fs.writeJson(pkgPath, pkg, { spaces: 2 });
+
+    // Example test
+    await fs.ensureDir(path.join(projectPath, "__tests__"));
+    await fs.writeFile(
+      path.join(projectPath, "__tests__/page.test.tsx"),
+      exampleTest
+    );
+  }
+
+  if (config.playwright) {
+    // pnpm create playwright or init?
+    // Using 'npm init playwright@latest' is interactive.
+    // We should manually scaffold basic configs to avoid prompts or use --yes/--quiet if possible.
+    // Installing deps manually and writing config is safer for non-interactive.
+
+    const installDev = getInstallCommand(pm, ["@playwright/test"], true);
+    await runCommand(installDev.command, installDev.args, projectPath);
+
+    // Install browsers
+    const dlx = getDlxCommand(pm);
+    await runCommand(
+      dlx.command,
+      [...dlx.args, "playwright", "install", "--with-deps"],
+      projectPath
+    );
+
+    await fs.writeFile(
+      path.join(projectPath, "playwright.config.ts"),
+      playwrightConfig
+    );
+
+    await fs.ensureDir(path.join(projectPath, "e2e"));
+    await fs.writeFile(
+      path.join(projectPath, "e2e/example.spec.ts"),
+      exampleE2E
+    );
+
+    // Add e2e script
+    const pkgPath = path.join(projectPath, "package.json");
+    const pkg = await fs.readJson(pkgPath);
+    pkg.scripts["test:e2e"] = "playwright test";
+    await fs.writeJson(pkgPath, pkg, { spaces: 2 });
+  }
+
+  spinner.succeed("Testing setup complete");
+}
+
+async function setupStorybook(projectPath: string, pm: PackageManager) {
+  const spinner = ora("Setting up Storybook...").start();
+
+  // Storybook init is complex and best left to its own CLI.
+  // npx storybook@latest init --type nextjs
+
+  const dlx = getDlxCommand(pm);
+  // --yes to skip prompts
+  await runCommand(
+    dlx.command,
+    [...dlx.args, "storybook@latest", "init", "--yes"],
+    projectPath
+  );
+
+  spinner.succeed("Storybook setup complete");
 }
