@@ -48,6 +48,16 @@ export const scaffoldProject = async (
   const projectPath = path.resolve(process.cwd(), projectName);
   const pm = detectPackageManager();
 
+  // Check if directory already exists
+  if (await fs.pathExists(projectPath)) {
+    console.log(
+      chalk.red(
+        `\nError: Directory "${projectName}" already exists. Please choose a different name or remove the existing directory.\n`
+      )
+    );
+    process.exit(1);
+  }
+
   console.log(
     chalk.blue(
       `\nInitializing Next.js project in ${projectName} using ${pm}...\n`
