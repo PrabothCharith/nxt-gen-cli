@@ -490,18 +490,30 @@ async function setupTesting(
 async function setupStorybook(projectPath: string, pm: PackageManager) {
   const spinner = ora("Setting up Storybook...").start();
 
-  // Storybook init is complex and best left to its own CLI.
-  // npx storybook@latest init --type nextjs
+  try {
+    const dlx = getDlxCommand(pm);
+    // --yes to skip prompts, --skip-install to prevent double installation
+    await runCommand(
+      dlx.command,
+      [...dlx.args, "storybook@latest", "init", "--yes", "--skip-install"],
+      projectPath
+    );
 
-  const dlx = getDlxCommand(pm);
-  // --yes to skip prompts
-  await runCommand(
-    dlx.command,
-    [...dlx.args, "storybook@latest", "init", "--yes"],
-    projectPath
-  );
+    // Install dependencies manually
+    const install = getInstallCommand(pm, [], false);
+    await runCommand(install.command, install.args, projectPath);
 
-  spinner.succeed("Storybook setup complete");
+    spinner.succeed("Storybook setup complete");
+  } catch (error) {
+    spinner.warn("Storybook setup skipped (requires manual setup)");
+    console.log(
+      chalk.yellow(
+        "\nTo set up Storybook manually, run:\n" +
+          `  cd ${path.basename(projectPath)}\n` +
+          `  npx storybook@latest init\n`
+      )
+    );
+  }
 }
 
 async function setupDocumentation(
