@@ -61,21 +61,48 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
 }
 `;
 
-export const providersComponent = (config: { ui: string, reactQuery: boolean }) => `
+export const providersComponent = (config: {
+  ui: string;
+  reactQuery: boolean;
+  auth?: string;
+}) => `
 'use client';
 
 import * as React from 'react';
-${config.reactQuery ? "import QueryProvider from '@/components/providers/query-provider';" : ''}
-${config.ui === 'heroui' || config.ui === 'both' ? "import { HeroUIProvider } from '@heroui/react';" : ''}
+${
+  config.reactQuery
+    ? "import QueryProvider from '@/components/providers/query-provider';"
+    : ""
+}
+${
+  config.ui === "heroui" || config.ui === "both"
+    ? "import { HeroUIProvider } from '@heroui/react';"
+    : ""
+}
+${
+  config.auth === "next-auth"
+    ? "import { SessionProvider } from 'next-auth/react';"
+    : ""
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <>
-      ${config.reactQuery ? '<QueryProvider>' : ''}
-        ${config.ui === 'heroui' || config.ui === 'both' ? '<HeroUIProvider>' : ''}
+      ${config.auth === "next-auth" ? "<SessionProvider>" : ""}
+      ${config.reactQuery ? "<QueryProvider>" : ""}
+        ${
+          config.ui === "heroui" || config.ui === "both"
+            ? "<HeroUIProvider>"
+            : ""
+        }
           {children}
-        ${config.ui === 'heroui' || config.ui === 'both' ? '</HeroUIProvider>' : ''}
-      ${config.reactQuery ? '</QueryProvider>' : ''}
+        ${
+          config.ui === "heroui" || config.ui === "both"
+            ? "</HeroUIProvider>"
+            : ""
+        }
+      ${config.reactQuery ? "</QueryProvider>" : ""}
+      ${config.auth === "next-auth" ? "</SessionProvider>" : ""}
     </>
   );
 }
