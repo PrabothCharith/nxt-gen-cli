@@ -8,9 +8,6 @@ export const authOptions = {
       clientSecret: process.env.GITHUB_SECRET || "",
     }),
   ],
-  pages: {
-    signIn: '/auth/signin',
-  },
 }
 
 const handler = NextAuth(authOptions)
@@ -108,7 +105,7 @@ export default async function AuthPage() {
             </p>
             
             <a
-              href="/api/auth/signin"
+              href="/api/auth/signin?callbackUrl=/auth"
               className="block w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
               Sign In with GitHub
@@ -117,6 +114,17 @@ export default async function AuthPage() {
             <p className="text-xs text-gray-400 mt-4">
               Note: Configure GITHUB_ID and GITHUB_SECRET in .env first
             </p>
+
+            <div className="mt-8 p-4 bg-gray-50 rounded-md text-left text-sm border border-gray-200">
+              <p className="font-semibold mb-2">GitHub OAuth Setup:</p>
+              <ol className="list-decimal list-inside space-y-1 text-gray-600">
+                <li>Go to <a href="https://github.com/settings/developers" target="_blank" className="text-blue-600 hover:underline">GitHub Developer Settings</a></li>
+                <li>Create a new OAuth App</li>
+                <li><strong>Homepage URL:</strong> http://localhost:3000</li>
+                <li><strong>Callback URL:</strong> http://localhost:3000/api/auth/callback/github</li>
+                <li>Copy Client ID & Secret to .env</li>
+              </ol>
+            </div>
           </div>
         )}
       </div>
