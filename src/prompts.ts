@@ -66,6 +66,16 @@ export async function initialPrompt(
         initial: true,
       },
       {
+        type: options.auth !== undefined ? null : "select",
+        name: "auth",
+        message: "Authentication Provider:",
+        choices: [
+          { title: "Auth.js (NextAuth)", value: "next-auth" },
+          { title: "Clerk", value: "clerk" },
+          { title: "None", value: "none" },
+        ],
+      },
+      {
         type: options.ui !== undefined ? null : "select",
         name: "ui",
         message: "Schadcn or HeroUI for UI components?",
@@ -93,12 +103,18 @@ export async function initialPrompt(
         name: "examples",
         message: "Example processes and pages?",
         initial: 3, // Index of "None"
-        choices: [
-          { title: "CRUD Operations Example", value: "crud" },
-          { title: "Authentication Example", value: "auth" },
-          { title: "Both", value: "both" },
-          { title: "None", value: "none" },
-        ],
+        choices: (prev, values) => {
+          const options = [{ title: "CRUD Operations Example", value: "crud" }];
+
+          // Only show Auth examples if an Auth Provider is selected
+          if (values.auth && values.auth !== "none") {
+            options.push({ title: "Authentication Example", value: "auth" });
+            options.push({ title: "Both", value: "both" });
+          }
+
+          options.push({ title: "None", value: "none" });
+          return options;
+        },
       },
       {
         type: options.docker !== undefined ? null : "confirm",
@@ -156,17 +172,6 @@ export async function initialPrompt(
         choices: [
           { title: "MIT", value: "MIT" },
           { title: "Apache 2.0", value: "Apache" },
-          { title: "None", value: "none" },
-        ],
-      },
-
-      {
-        type: options.auth !== undefined ? null : "select",
-        name: "auth",
-        message: "Authentication Provider:",
-        choices: [
-          { title: "Auth.js (NextAuth)", value: "next-auth" },
-          { title: "Clerk", value: "clerk" },
           { title: "None", value: "none" },
         ],
       },
