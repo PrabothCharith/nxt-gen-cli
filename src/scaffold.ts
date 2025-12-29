@@ -125,24 +125,185 @@ export const scaffoldProject = async (
   if (config.forms) await setupForms(projectPath, pm);
   if (config.intl) await setupIntl(projectPath, pm);
 
+  // Beautiful ASCII Art Header
+  console.log("\n");
+  console.log(
+    chalk.cyan.bold(
+      "  ╔═══════════════════════════════════════════════════════════════╗"
+    )
+  );
+  console.log(
+    chalk.cyan.bold(
+      "  ║                                                               ║"
+    )
+  );
+  console.log(
+    chalk.cyan.bold("  ║   ") +
+      chalk.green.bold(
+        "███╗   ██╗██╗  ██╗████████╗      ██████╗ ███████╗███╗   ██╗"
+      ) +
+      chalk.cyan.bold("   ║")
+  );
+  console.log(
+    chalk.cyan.bold("  ║   ") +
+      chalk.green.bold(
+        "████╗  ██║╚██╗██╔╝╚══██╔══╝     ██╔════╝ ██╔════╝████╗  ██║"
+      ) +
+      chalk.cyan.bold("   ║")
+  );
+  console.log(
+    chalk.cyan.bold("  ║   ") +
+      chalk.green.bold(
+        "██╔██╗ ██║ ╚███╔╝    ██║        ██║  ███╗█████╗  ██╔██╗ ██║"
+      ) +
+      chalk.cyan.bold("   ║")
+  );
+  console.log(
+    chalk.cyan.bold("  ║   ") +
+      chalk.green.bold(
+        "██║╚██╗██║ ██╔██╗    ██║        ██║   ██║██╔══╝  ██║╚██╗██║"
+      ) +
+      chalk.cyan.bold("   ║")
+  );
+  console.log(
+    chalk.cyan.bold("  ║   ") +
+      chalk.green.bold(
+        "██║ ╚████║██╔╝ ██╗   ██║███████╗╚██████╔╝███████╗██║ ╚████║"
+      ) +
+      chalk.cyan.bold("   ║")
+  );
+  console.log(
+    chalk.cyan.bold("  ║   ") +
+      chalk.green.bold(
+        "╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝╚══════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝"
+      ) +
+      chalk.cyan.bold("   ║")
+  );
+  console.log(
+    chalk.cyan.bold(
+      "  ║                                                               ║"
+    )
+  );
+  console.log(
+    chalk.cyan.bold(
+      "  ╚═══════════════════════════════════════════════════════════════╝"
+    )
+  );
+  console.log("\n");
+
+  // Success Message
   console.log(
     boxen(
-      `${chalk.green.bold("Success!")} Project ${chalk.cyan(
-        projectName
-      )} created.\n\n` +
-        `${chalk.yellow("Next steps:")}\n` +
-        `  cd ${projectName}\n` +
-        `  ${pm === "npm" ? "npm run dev" : pm + " dev"}`,
+      chalk.green.bold("✨ SUCCESS! ✨") +
+        "\n\n" +
+        `Your Next.js project ${chalk.cyan.bold(
+          projectName
+        )} has been created!\n` +
+        chalk.gray("━".repeat(60)) +
+        "\n\n" +
+        chalk.yellow.bold("🚀 Quick Start:\n") +
+        chalk.white(
+          `  ${chalk.cyan("1.")} cd ${chalk.magenta(projectName)}\n`
+        ) +
+        chalk.white(
+          `  ${chalk.cyan("2.")} ${chalk.magenta(
+            pm === "npm" ? "npm run dev" : pm + " dev"
+          )}\n`
+        ) +
+        chalk.white(
+          `  ${chalk.cyan("3.")} Open ${chalk.magenta(
+            "http://localhost:3000"
+          )}\n\n`
+        ) +
+        chalk.yellow.bold("📦 Useful Commands:\n") +
+        chalk.white(
+          `  ${chalk.cyan("Build:")}       ${chalk.magenta(
+            pm === "npm" ? "npm run build" : pm + " build"
+          )}\n`
+        ) +
+        chalk.white(
+          `  ${chalk.cyan("Lint:")}        ${chalk.magenta(
+            pm === "npm" ? "npm run lint" : pm + " lint"
+          )}\n`
+        ) +
+        (config.vitest
+          ? chalk.white(
+              `  ${chalk.cyan("Test:")}        ${chalk.magenta(
+                pm === "npm" ? "npm test" : pm + " test"
+              )}\n`
+            )
+          : "") +
+        (config.playwright
+          ? chalk.white(
+              `  ${chalk.cyan("E2E Test:")}    ${chalk.magenta(
+                pm === "npm" ? "npm run test:e2e" : pm + " test:e2e"
+              )}\n`
+            )
+          : "") +
+        (config.storybook
+          ? chalk.white(
+              `  ${chalk.cyan("Storybook:")}   ${chalk.magenta(
+                pm === "npm" ? "npm run storybook" : pm + " storybook"
+              )}\n`
+            )
+          : "") +
+        "\n" +
+        chalk.yellow.bold("📚 Documentation:\n") +
+        chalk.white(
+          `  ${chalk.cyan("•")} Check out ${chalk.magenta(
+            "README.md"
+          )} for detailed setup\n`
+        ) +
+        (config.prisma
+          ? chalk.white(
+              `  ${chalk.cyan("•")} Configure ${chalk.magenta(
+                ".env"
+              )} for database connection\n`
+            )
+          : "") +
+        (config.auth !== "none"
+          ? chalk.white(
+              `  ${chalk.cyan("•")} Set up ${chalk.magenta(
+                config.auth === "next-auth" ? "NextAuth" : "Clerk"
+              )} environment variables\n`
+            )
+          : "") +
+        chalk.white(
+          `  ${chalk.cyan("•")} Review ${chalk.magenta(
+            ".env.example"
+          )} for all config options\n\n`
+        ) +
+        chalk.yellow.bold("💡 Pro Tips:\n") +
+        chalk.white(
+          `  ${chalk.cyan("•")} Star the repo: ${chalk.blue.underline(
+            "github.com/PrabothCharith/nxt-gen-cli"
+          )}\n`
+        ) +
+        chalk.white(
+          `  ${chalk.cyan("•")} Report issues or suggest features on GitHub\n`
+        ) +
+        chalk.white(
+          `  ${chalk.cyan(
+            "•"
+          )} Share your feedback to help improve nxt-gen!\n\n`
+        ) +
+        chalk.gray("━".repeat(60)) +
+        "\n" +
+        chalk.white("Happy coding! ") +
+        chalk.gray("Built with love by ") +
+        chalk.cyan.bold("Praboth Charith\n") +
+        chalk.blue.underline("https://praboth.me"),
       {
         padding: 1,
         margin: 1,
-        borderStyle: "double",
+        borderStyle: "round",
         borderColor: "green",
+        align: "left",
       }
     )
   );
 
-  console.log(chalk.cyan(`Created by Praboth Charith (https://praboth.me)\n`));
+  console.log("\n");
 };
 
 async function cleanupDefaultFiles(projectPath: string) {
