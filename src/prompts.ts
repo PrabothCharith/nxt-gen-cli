@@ -16,6 +16,7 @@ export interface ProjectConfig {
   playwright: boolean;
   storybook: boolean;
   license: "MIT" | "Apache" | "none";
+  auth: "next-auth" | "clerk" | "none";
 }
 
 export async function initialPrompt(
@@ -36,6 +37,7 @@ export async function initialPrompt(
     playwright: false,
     storybook: false,
     license: "none",
+    auth: "none",
     ...options,
   };
 
@@ -137,6 +139,17 @@ export async function initialPrompt(
       choices: [
         { title: "MIT", value: "MIT" },
         { title: "Apache 2.0", value: "Apache" },
+        { title: "None", value: "none" },
+      ],
+    },
+
+    {
+      type: options.auth !== undefined ? null : "select",
+      name: "auth",
+      message: "Authentication Provider:",
+      choices: [
+        { title: "Auth.js (NextAuth)", value: "next-auth" },
+        { title: "Clerk", value: "clerk" },
         { title: "None", value: "none" },
       ],
     },

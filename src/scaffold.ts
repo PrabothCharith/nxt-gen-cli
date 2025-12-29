@@ -24,6 +24,14 @@ import {
 } from "./templates/testing.js";
 import { readmeTemplate, mitLicense, apacheLicense } from "./templates/docs.js";
 import {
+  nextAuthFile,
+  nextAuthApiRoute,
+  nextAuthMiddleware,
+  clerkMiddleware,
+  nextAuthEnv,
+  clerkEnv,
+} from "./templates/auth.js";
+import {
   detectPackageManager,
   getInstallCommand,
   getDlxCommand,
@@ -100,6 +108,8 @@ export const scaffoldProject = async (
   if (config.storybook) await setupStorybook(projectPath, pm);
 
   await setupDocumentation(projectPath, config, pm, projectName);
+
+  if (config.auth !== "none") await setupAuth(projectPath, config, pm);
 
   console.log(
     boxen(
@@ -528,4 +538,54 @@ async function setupDocumentation(
   }
 
   spinner.succeed("Documentation generated");
+}
+
+async function setupAuth(
+  projectPath: string,
+  config: ProjectConfig,
+  pm: PackageManager
+) {
+  const spinner = ora("Setting up Authentication...").start();
+
+  if (config.auth === "next-auth") {
+    // Install NextAuth v5 beta
+    const install = getInstallCommand(pm, ["next-auth@beta"], false);
+    await runCommand(install.command, install.args, projectPath);
+
+    // Files
+    await fs.ensureDir(path.join(projectPath, "src/lib"));
+    await fs.writeFile(path.join(projectPath, "src/lib/auth.ts"), nextAuthFile);
+
+    await fs.ensureDir(
+      path.join(projectPath, "src/app/api/auth/[...nextauth]")
+    );
+    await fs.writeFile(
+      path.join(projectPath, "src/app/api/auth/[...nextauth]/route.ts"),
+      nextAuthApiRoute
+    );
+
+    await fs.writeFile(
+      path.join(projectPath, "src/middleware.ts"),
+      nextAuthMiddleware
+    );
+
+    // Env
+    await fs.appendFile(path.join(projectPath, ".env"), nextAuthEnv);
+    await fs.appendFile(path.join(projectPath, ".env.example"), nextAuthEnv);
+  } else if (config.auth === "clerk") {
+    const install = getInstallCommand(pm, ["@clerk/nextjs"], false);
+    await runCommand(install.command, install.args, projectPath);
+
+    // Middleware
+    await fs.writeFile(
+      path.join(projectPath, "src/middleware.ts"),
+      clerkMiddleware
+    );
+
+    // Env
+    await fs.appendFile(path.join(projectPath, ".env"), clerkEnv);
+    await fs.appendFile(path.join(projectPath, ".env.example"), clerkEnv);
+  }
+
+  spinner.succeed("Authentication setup setup complete");
 }

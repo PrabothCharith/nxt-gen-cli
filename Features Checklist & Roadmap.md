@@ -30,6 +30,6 @@ This document correlates to the planned improvements for `nxt-gen-cli`.
 - [x] **Update Notifications**: Integrate `update-notifier` to alert users of new CLI versions.
 
 ### Feature Expansion (New Scaffolding Options)
-- [ ] **Authentication**: Add first-class scaffolding for **Auth.js (NextAuth)** and **Clerk**.
+- [x] **Authentication**: Add first-class scaffolding for **Auth.js (NextAuth)** and **Clerk**.
 - [ ] **Forms & Validation**: Add option to pre-configure **React Hook Form** with **Zod** resolvers.
 - [ ] **Internationalization**: Add scaffolding for `next-intl` for multi-language support.
