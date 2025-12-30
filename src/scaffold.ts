@@ -476,6 +476,10 @@ async function setupPrisma(projectPath: string, deps: DependencyCollector) {
 
   await fs.appendFile(envPath, '\nDATABASE_URL="file:./dev.db"\n');
 
+  // Push the database
+  spinner.text = "Pushing database...";
+  await runCommand("npx", ["prisma", "db", "push"], projectPath);
+
   spinner.succeed("Prisma setup complete");
 }
 
