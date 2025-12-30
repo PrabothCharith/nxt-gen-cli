@@ -16,6 +16,19 @@ model Post {
 }
 `;
 
+export const prismaConfig = `
+import { defineConfig } from "prisma/config";
+import * as dotenv from "dotenv";
+
+dotenv.config();
+
+export default defineConfig({
+  datasource: {
+    url: String(process.env.DATABASE_URL),
+  },
+});
+`;
+
 export const prismaClient = `
 import { PrismaClient } from '@prisma/client';
 

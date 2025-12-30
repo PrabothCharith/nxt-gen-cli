@@ -8,6 +8,7 @@ import boxen from "boxen";
 import {
   prismaSchema,
   prismaClient,
+  prismaConfig,
   axiosClient,
   queryProvider,
   providersComponent,
@@ -457,6 +458,9 @@ async function setupPrisma(projectPath: string, deps: DependencyCollector) {
     path.join(projectPath, "prisma/schema.prisma"),
     prismaSchema
   );
+
+  // Write prisma.config.ts (required for Prisma 7)
+  await fs.writeFile(path.join(projectPath, "prisma.config.ts"), prismaConfig);
 
   await fs.ensureDir(path.join(projectPath, "src/lib"));
   await fs.writeFile(path.join(projectPath, "src/lib/prisma.ts"), prismaClient);
