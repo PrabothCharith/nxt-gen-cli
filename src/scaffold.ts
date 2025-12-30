@@ -225,66 +225,74 @@ export const scaffoldProject = async (
   // Beautiful ASCII Art Header
   console.log("\n");
   console.log(
-    chalk.cyan.bold(
-      "  ╔═════════════════════════════════════════════════════════════════════╗"
-    )
+    chalk
+      .hex("#eb5939")
+      .bold(
+        "  ╔═════════════════════════════════════════════════════════════════════╗"
+      )
   );
   console.log(
-    chalk.cyan.bold(
-      "  ║                                                               ║"
-    )
+    chalk
+      .hex("#eb5939")
+      .bold(
+        "  ║                                                                     ║"
+      )
   );
   console.log(
-    chalk.cyan.bold("  ║   ") +
-      chalk.green.bold(
-        "███╗   ██╗██╗  ██╗████████╗      ██████╗ ███████╗███╗   ██╗"
-      ) +
-      chalk.cyan.bold("   ║")
+    chalk.hex("#eb5939").bold("  ║     ") +
+      chalk
+        .hex("#eb5939")
+        .bold("███╗   ██╗██╗  ██╗████████╗      ██████╗ ███████╗███╗   ██╗") +
+      chalk.hex("#eb5939").bold("     ║")
   );
   console.log(
-    chalk.cyan.bold("  ║   ") +
-      chalk.green.bold(
-        "████╗  ██║╚██╗██╔╝╚══██╔══╝     ██╔════╝ ██╔════╝████╗  ██║"
-      ) +
-      chalk.cyan.bold("   ║")
+    chalk.hex("#eb5939").bold("  ║     ") +
+      chalk
+        .hex("#eb5939")
+        .bold("████╗  ██║╚██╗██╔╝╚══██╔══╝     ██╔════╝ ██╔════╝████╗  ██║") +
+      chalk.hex("#eb5939").bold("     ║")
   );
   console.log(
-    chalk.cyan.bold("  ║   ") +
-      chalk.green.bold(
-        "██╔██╗ ██║ ╚███╔╝    ██║        ██║  ███╗█████╗  ██╔██╗ ██║"
-      ) +
-      chalk.cyan.bold("   ║")
+    chalk.hex("#eb5939").bold("  ║     ") +
+      chalk
+        .hex("#eb5939")
+        .bold("██╔██╗ ██║ ╚███╔╝    ██║        ██║  ███╗█████╗  ██╔██╗ ██║") +
+      chalk.hex("#eb5939").bold("     ║")
   );
   console.log(
-    chalk.cyan.bold("  ║   ") +
-      chalk.green.bold(
-        "██║╚██╗██║ ██╔██╗    ██║        ██║   ██║██╔══╝  ██║╚██╗██║"
-      ) +
-      chalk.cyan.bold("   ║")
+    chalk.hex("#eb5939").bold("  ║     ") +
+      chalk
+        .hex("#eb5939")
+        .bold("██║╚██╗██║ ██╔██╗    ██║        ██║   ██║██╔══╝  ██║╚██╗██║") +
+      chalk.hex("#eb5939").bold("     ║")
   );
   console.log(
-    chalk.cyan.bold("  ║   ") +
-      chalk.green.bold(
-        "██║ ╚████║██╔╝ ██╗   ██║███████╗╚██████╔╝███████╗██║ ╚████║"
-      ) +
-      chalk.cyan.bold("   ║")
+    chalk.hex("#eb5939").bold("  ║     ") +
+      chalk
+        .hex("#eb5939")
+        .bold("██║ ╚████║██╔╝ ██╗   ██║███████╗╚██████╔╝███████╗██║ ╚████║") +
+      chalk.hex("#eb5939").bold("     ║")
   );
   console.log(
-    chalk.cyan.bold("  ║   ") +
-      chalk.green.bold(
-        "╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝╚══════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝"
-      ) +
-      chalk.cyan.bold("   ║")
+    chalk.hex("#eb5939").bold("  ║     ") +
+      chalk
+        .hex("#eb5939")
+        .bold("╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝╚══════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝") +
+      chalk.hex("#eb5939").bold("     ║")
   );
   console.log(
-    chalk.cyan.bold(
-      "  ║                                                               ║"
-    )
+    chalk
+      .hex("#eb5939")
+      .bold(
+        "  ║                                                                     ║"
+      )
   );
   console.log(
-    chalk.cyan.bold(
-      "  ╚═════════════════════════════════════════════════════════════════════╝"
-    )
+    chalk
+      .hex("#eb5939")
+      .bold(
+        "  ╚═════════════════════════════════════════════════════════════════════╝"
+      )
   );
   console.log("\n");
 

@@ -3,8 +3,7 @@ import prompts from "prompts";
 import chalk from "chalk";
 import path from "path";
 import fs from "fs-extra";
-import gradient from "gradient-string";
-import figlet from "figlet";
+
 import updateNotifier from "update-notifier";
 import { createRequire } from "module";
 import { initialPrompt } from "./prompts.js";
@@ -22,10 +21,76 @@ export async function main() {
 
   // Banner
   console.log(
-    gradient.pastel.multiline(
-      figlet.textSync("nxt-gen-cli", { horizontalLayout: "full" })
-    )
+    chalk
+      .hex("#eb5939")
+      .bold(
+        "  ╔═════════════════════════════════════════════════════════════════════╗"
+      )
   );
+  console.log(
+    chalk
+      .hex("#eb5939")
+      .bold(
+        "  ║                                                                     ║"
+      )
+  );
+  console.log(
+    chalk.hex("#eb5939").bold("  ║     ") +
+      chalk
+        .hex("#eb5939")
+        .bold("███╗   ██╗██╗  ██╗████████╗      ██████╗ ███████╗███╗   ██╗") +
+      chalk.hex("#eb5939").bold("     ║")
+  );
+  console.log(
+    chalk.hex("#eb5939").bold("  ║     ") +
+      chalk
+        .hex("#eb5939")
+        .bold("████╗  ██║╚██╗██╔╝╚══██╔══╝     ██╔════╝ ██╔════╝████╗  ██║") +
+      chalk.hex("#eb5939").bold("     ║")
+  );
+  console.log(
+    chalk.hex("#eb5939").bold("  ║     ") +
+      chalk
+        .hex("#eb5939")
+        .bold("██╔██╗ ██║ ╚███╔╝    ██║        ██║  ███╗█████╗  ██╔██╗ ██║") +
+      chalk.hex("#eb5939").bold("     ║")
+  );
+  console.log(
+    chalk.hex("#eb5939").bold("  ║     ") +
+      chalk
+        .hex("#eb5939")
+        .bold("██║╚██╗██║ ██╔██╗    ██║        ██║   ██║██╔══╝  ██║╚██╗██║") +
+      chalk.hex("#eb5939").bold("     ║")
+  );
+  console.log(
+    chalk.hex("#eb5939").bold("  ║     ") +
+      chalk
+        .hex("#eb5939")
+        .bold("██║ ╚████║██╔╝ ██╗   ██║███████╗╚██████╔╝███████╗██║ ╚████║") +
+      chalk.hex("#eb5939").bold("     ║")
+  );
+  console.log(
+    chalk.hex("#eb5939").bold("  ║     ") +
+      chalk
+        .hex("#eb5939")
+        .bold("╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝╚══════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝") +
+      chalk.hex("#eb5939").bold("     ║")
+  );
+  console.log(
+    chalk
+      .hex("#eb5939")
+      .bold(
+        "  ║                                                                     ║"
+      )
+  );
+  console.log(
+    chalk
+      .hex("#eb5939")
+      .bold(
+        "  ╚═════════════════════════════════════════════════════════════════════╝"
+      )
+  );
+  console.log("\n");
 
   program
     .name("nxt-gen-cli")
