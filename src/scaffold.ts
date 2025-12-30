@@ -8,6 +8,7 @@ import boxen from "boxen";
 import {
   prismaSchema,
   prismaClient,
+  prismaConfig,
   axiosClient,
   queryProvider,
   providersComponent,
@@ -456,8 +457,20 @@ async function setupPrisma(projectPath: string, deps: DependencyCollector) {
     path.join(projectPath, "prisma/schema.prisma"),
     prismaSchema
   );
+  // Write prisma.config.ts
+  await fs.writeFile(path.join(projectPath, "prisma.config.ts"), prismaConfig);
+
   await fs.ensureDir(path.join(projectPath, "src/lib"));
   await fs.writeFile(path.join(projectPath, "src/lib/prisma.ts"), prismaClient);
+
+  // Add DATABASE_URL to .env
+  const envPath = path.join(projectPath, ".env");
+  // Check if .env exists, if not create it
+  if (!(await fs.pathExists(envPath))) {
+    await fs.writeFile(envPath, "");
+  }
+
+  await fs.appendFile(envPath, '\nDATABASE_URL="file:./dev.db"\n');
 
   spinner.succeed("Prisma setup complete");
 }

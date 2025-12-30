@@ -16,6 +16,18 @@ model Post {
 }
 `;
 
+export const prismaConfig = `
+import { defineConfig } from '@prisma/config';
+
+export default defineConfig({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+});
+`;
+
 export const prismaClient = `
 import { PrismaClient } from '@prisma/client';
 
