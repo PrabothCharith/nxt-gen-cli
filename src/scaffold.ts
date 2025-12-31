@@ -412,7 +412,7 @@ export const scaffoldProject = async (
         chalk.yellow.bold(" Pro Tips:\n") +
         chalk.white(
           `  ${chalk.cyan("•")} Star the repo: ${chalk.blue.underline(
-            "github.com/PrabothCharith/nxt-gen-cli"
+            "https://github.com/PrabothCharith/nxt-gen-cli.git"
           )}\n`
         ) +
         chalk.white(
