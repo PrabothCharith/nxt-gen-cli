@@ -57,7 +57,7 @@ jobs:
           tag_name: v${{ steps.version.outputs.package_version }}
           name: Release ${{ steps.version.outputs.package_version }}
           body: |
-            ## 🚀 Release v${{ steps.version.outputs.package_version }}
+            ## Release v${{ steps.version.outputs.package_version }}
 
             ### Install
             ```bash
