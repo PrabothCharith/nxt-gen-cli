@@ -19,6 +19,7 @@ export interface ProjectConfig {
   intl: boolean;
   license: "MIT" | "Apache" | "none";
   auth: "next-auth" | "clerk" | "none";
+  install?: boolean;
 }
 
 export async function initialPrompt(
@@ -44,6 +45,15 @@ export async function initialPrompt(
     auth: "none",
     ...options,
   };
+
+  // Sanitize boolean options (Commander passes strings for [boolean] args)
+  (Object.keys(defaults) as (keyof ProjectConfig)[]).forEach((key) => {
+    const val = defaults[key] as any;
+    if (typeof val === "string") {
+      if (val === "true") (defaults[key] as any) = true;
+      if (val === "false") (defaults[key] as any) = false;
+    }
+  });
 
   const response = await prompts(
     [

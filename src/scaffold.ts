@@ -97,6 +97,8 @@ export const scaffoldProject = async (
       "--import-alias",
       "@/*",
       `--use-${pm}`,
+      "--no-turbopack",
+      "--no-react-compiler", // Suppress React Compiler prompt
     ],
     process.cwd()
   );
@@ -169,24 +171,29 @@ export const scaffoldProject = async (
       );
     }
 
-    const { shouldInstall } = await prompts(
-      {
-        type: "confirm",
-        name: "shouldInstall",
-        message: "Install dependencies now?",
-        initial: true,
-      },
-      {
-        onCancel: () => {
-          console.log(
-            chalk.yellow("\nSkipping installation. To install later:")
-          );
-          console.log(chalk.cyan(`  cd ${projectName}`));
-          console.log(chalk.cyan(`  ${pm} install`));
-          process.exit(0);
+    let shouldInstall = config.install;
+
+    if (shouldInstall === undefined) {
+      const response = await prompts(
+        {
+          type: "confirm",
+          name: "shouldInstall",
+          message: "Install dependencies now?",
+          initial: true,
         },
-      }
-    );
+        {
+          onCancel: () => {
+            console.log(
+              chalk.yellow("\nSkipping installation. To install later:")
+            );
+            console.log(chalk.cyan(`  cd ${projectName}`));
+            console.log(chalk.cyan(`  ${pm} install`));
+            process.exit(0);
+          },
+        }
+      );
+      shouldInstall = response.shouldInstall;
+    }
 
     if (shouldInstall) {
       const spinner = ora("Installing dependencies...").start();
