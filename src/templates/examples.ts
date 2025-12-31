@@ -4,7 +4,7 @@ ${
   orm === "prisma"
     ? "import prisma from '@/lib/prisma';"
     : orm === "drizzle"
-    ? "import { db } from '@/lib/db';\\nimport { posts } from '@/db/schema';\\nimport { like, or, desc } from 'drizzle-orm';"
+    ? "import { db } from '@/lib/db';\nimport { posts } from '@/db/schema';\nimport { like, or, desc } from 'drizzle-orm';"
     : "import { db } from '@/lib/db';"
 }
 
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
       ? "const post = await db.insert(posts).values({ title: body.title, content: body.content }).returning();"
       : "const post = await db.post.create({ data: { title: body.title, content: body.content } });"
   }
-  return NextResponse.json(orm === "drizzle" ? post[0] : post);
+  return NextResponse.json(${orm === "drizzle" ? "post[0]" : "post"});
 }
 `;
 
@@ -78,7 +78,7 @@ ${
   orm === "prisma"
     ? "import prisma from '@/lib/prisma';"
     : orm === "drizzle"
-    ? "import { db } from '@/lib/db';\\nimport { posts } from '@/db/schema';\\nimport { eq } from 'drizzle-orm';"
+    ? "import { db } from '@/lib/db';\nimport { posts } from '@/db/schema';\nimport { eq } from 'drizzle-orm';"
     : "import { db } from '@/lib/db';"
 }
 
@@ -108,7 +108,7 @@ export async function PUT(
       data: { title: body.title, content: body.content },
     });`
     }
-    return NextResponse.json(orm === "drizzle" ? post[0] : post);
+    return NextResponse.json(${orm === "drizzle" ? "post[0]" : "post"});
   } catch (error) {
     return NextResponse.json({ error: 'Post not found or update failed' }, { status: 500 });
   }
