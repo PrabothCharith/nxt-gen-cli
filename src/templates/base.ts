@@ -1,6 +1,8 @@
 export const prismaSchema = `
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -15,11 +17,28 @@ model Post {
 }
 `;
 
+export const prismaConfig = `
+import { defineConfig } from "prisma/config";
+import * as dotenv from "dotenv";
+
+dotenv.config();
+
+export default defineConfig({
+  datasource: {
+    url: String(process.env.DATABASE_URL),
+  },
+});
+`;
+
 export const prismaClient = `
-import { PrismaClient } from '@prisma/client';
+import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { PrismaClient } from "@prisma/client";
 
 const prismaClientSingleton = () => {
-  return new PrismaClient();
+  const adapter = new PrismaLibSql({
+    url: process.env.DATABASE_URL!,
+  });
+  return new PrismaClient({ adapter });
 };
 
 declare global {
@@ -61,21 +80,48 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
 }
 `;
 
-export const providersComponent = (config: { ui: string, reactQuery: boolean }) => `
+export const providersComponent = (config: {
+  ui: string;
+  reactQuery: boolean;
+  auth?: string;
+}) => `
 'use client';
 
 import * as React from 'react';
-${config.reactQuery ? "import QueryProvider from '@/components/providers/query-provider';" : ''}
-${config.ui === 'heroui' || config.ui === 'both' ? "import { HeroUIProvider } from '@heroui/react';" : ''}
+${
+  config.reactQuery
+    ? "import QueryProvider from '@/components/providers/query-provider';"
+    : ""
+}
+${
+  config.ui === "heroui" || config.ui === "both"
+    ? "import { HeroUIProvider } from '@heroui/react';"
+    : ""
+}
+${
+  config.auth === "next-auth"
+    ? "import { SessionProvider } from 'next-auth/react';"
+    : ""
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <>
-      ${config.reactQuery ? '<QueryProvider>' : ''}
-        ${config.ui === 'heroui' || config.ui === 'both' ? '<HeroUIProvider>' : ''}
+      ${config.auth === "next-auth" ? "<SessionProvider>" : ""}
+      ${config.reactQuery ? "<QueryProvider>" : ""}
+        ${
+          config.ui === "heroui" || config.ui === "both"
+            ? "<HeroUIProvider>"
+            : ""
+        }
           {children}
-        ${config.ui === 'heroui' || config.ui === 'both' ? '</HeroUIProvider>' : ''}
-      ${config.reactQuery ? '</QueryProvider>' : ''}
+        ${
+          config.ui === "heroui" || config.ui === "both"
+            ? "</HeroUIProvider>"
+            : ""
+        }
+      ${config.reactQuery ? "</QueryProvider>" : ""}
+      ${config.auth === "next-auth" ? "</SessionProvider>" : ""}
     </>
   );
 }

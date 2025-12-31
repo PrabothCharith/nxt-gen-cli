@@ -1,14 +1,17 @@
 {
   "name": "nxt-gen-cli",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "description": "The ultimate Next.js scaffold CLI generator. Customize your stack with Prisma, React Query, Shadcn, HeroUI, and more in seconds.",
   "main": "dist/index.js",
+  "type": "module",
   "bin": {
     "nxt-gen-cli": "bin/nxt-gen-cli"
   },
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run test:smoke",
+    "test:smoke": "node test/smoke-test.mjs",
+    "test:int": "node test/test-cli.mjs"
   },
   "repository": {
     "type": "git",
@@ -45,24 +48,31 @@
     "LICENSE.md",
     "SECURITY.md"
   ],
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/PrabothCharith/nxt-gen-cli/issues"
   },
   "homepage": "https://github.com/PrabothCharith/nxt-gen-cli#readme",
   "dependencies": {
+    "boxen": "^8.0.1",
     "chalk": "^5.6.2",
     "commander": "^14.0.2",
     "execa": "^9.6.1",
+    "figlet": "^1.8.0",
     "fs-extra": "^11.3.2",
+    "gradient-string": "^3.0.0",
     "handlebars": "^4.7.8",
     "ora": "^9.0.0",
-    "prompts": "^2.4.2"
+    "prompts": "^2.4.2",
+    "ts-morph": "^27.0.2",
+    "update-notifier": "^7.3.1"
   },
   "devDependencies": {
+    "@types/figlet": "^1.7.0",
     "@types/fs-extra": "^11.0.4",
+    "@types/gradient-string": "^1.1.6",
     "@types/node": "^24.10.2",
     "@types/prompts": "^2.4.9",
+    "@types/update-notifier": "^6.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }

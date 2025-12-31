@@ -1,3 +1,3 @@
 #!/usr/bin/env node
-const { main } = require('../dist/index');
+const { main } = await import('../dist/index.js');
 main().catch(console.error);
