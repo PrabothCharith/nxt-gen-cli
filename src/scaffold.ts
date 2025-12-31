@@ -209,7 +209,8 @@ export const scaffoldProject = async (
         if (config.orm === "prisma") {
           const prismaSpinner = ora("Generating Prisma Client...").start();
           await runCommand("npx", ["prisma", "generate"], projectPath);
-          prismaSpinner.succeed("Prisma Client generated");
+          await runCommand("npx", ["prisma", "db", "push"], projectPath);
+          prismaSpinner.succeed("Prisma Client generated and DB pushed");
         }
 
         if (config.orm === "drizzle") {
@@ -464,9 +465,9 @@ export default function Home() {
 async function setupPrisma(projectPath: string, deps: DependencyCollector) {
   const spinner = ora("Setting up Prisma...").start();
 
-  deps.addDevDep("prisma");
+  deps.addDevDep("prisma@dev");
   deps.addDevDep("dotenv");
-  deps.addDep("@prisma/client");
+  deps.addDep("@prisma/client@dev");
   deps.addDep("@prisma/adapter-libsql");
   deps.addDep("@libsql/client@0.8.1");
 
@@ -490,10 +491,6 @@ async function setupPrisma(projectPath: string, deps: DependencyCollector) {
   }
 
   await fs.appendFile(envPath, '\nDATABASE_URL="file:./dev.db"\n');
-
-  // Push the database
-  spinner.text = "Pushing database...";
-  await runCommand("npx", ["prisma", "db", "push"], projectPath);
 
   spinner.succeed("Prisma setup complete");
 }

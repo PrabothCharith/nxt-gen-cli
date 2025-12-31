@@ -1,6 +1,7 @@
 export const prismaSchema = `
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
   output   = "../node_modules/.prisma/client"
 }
 
