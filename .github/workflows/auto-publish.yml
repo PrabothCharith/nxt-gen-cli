@@ -51,10 +51,10 @@ jobs:
           echo "@PrabothCharith:registry=https://npm.pkg.github.com" > .npmrc
           # Temporarily change the package name to the scoped version for GPR
           npm pkg set name="@PrabothCharith/nxt-gen-cli"
-          # Publish using the GITHUB_TOKEN
+          # Publish using the GH_TOKEN
           npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Create Git Tag
         run: |
@@ -88,4 +88,4 @@ jobs:
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
