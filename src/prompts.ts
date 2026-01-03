@@ -19,6 +19,7 @@ export interface ProjectConfig {
   intl: boolean;
   license: "MIT" | "Apache" | "none";
   auth: "next-auth" | "clerk" | "none";
+  orval: boolean;
   install?: boolean;
 }
 
@@ -43,6 +44,7 @@ export async function initialPrompt(
     intl: false,
     license: "none",
     auth: "none",
+    orval: false,
     ...options,
   };
 
@@ -178,6 +180,12 @@ export async function initialPrompt(
         name: "forms",
         message: "Setup Forms (React Hook Form + Zod)?",
         initial: true,
+      },
+      {
+        type: options.orval !== undefined ? null : "confirm",
+        name: "orval",
+        message: "Initialize Orval for API generation?",
+        initial: false,
       },
       {
         type: options.intl !== undefined ? null : "confirm",

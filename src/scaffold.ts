@@ -47,6 +47,7 @@ import {
   clerkEnv,
 } from "./templates/auth.js";
 import { formSchema, exampleForm } from "./templates/forms.js";
+import { orvalConfig } from "./templates/orval.js";
 import { messagesEn, i18nConfig, intlMiddleware } from "./templates/intl.js";
 import {
   detectPackageManager,
@@ -148,6 +149,7 @@ export const scaffoldProject = async (
   if (config.auth !== "none") await setupAuth(projectPath, config, deps);
   if (config.forms) await setupForms(projectPath, deps);
   if (config.intl) await setupIntl(projectPath, deps);
+  if (config.orval) await setupOrval(projectPath, deps);
 
   // Batch installation logic
   console.log(chalk.blue("\nFiles generated successfully!"));
@@ -161,14 +163,14 @@ export const scaffoldProject = async (
       console.log(
         chalk.white("  Dependencies:"),
         regularDeps.slice(0, 5).join(", ") +
-          (regularDeps.length > 5 ? ` +${regularDeps.length - 5} more` : "")
+        (regularDeps.length > 5 ? ` +${regularDeps.length - 5} more` : "")
       );
     }
     if (devDeps.length > 0) {
       console.log(
         chalk.white("  Dev Dependencies:"),
         devDeps.slice(0, 5).join(", ") +
-          (devDeps.length > 5 ? ` +${devDeps.length - 5} more` : "")
+        (devDeps.length > 5 ? ` +${devDeps.length - 5} more` : "")
       );
     }
 
@@ -259,104 +261,104 @@ export const scaffoldProject = async (
   console.log(
     boxen(
       chalk.green.bold(" SUCCESS! ") +
-        "\n\n" +
-        `Your Next.js project ${chalk.cyan.bold(
-          projectName
-        )} has been created!\n` +
-        chalk.gray("━".repeat(60)) +
-        "\n\n" +
-        chalk.yellow.bold(" Quick Start:\n") +
-        chalk.white(
-          `  ${chalk.cyan("1.")} cd ${chalk.magenta(projectName)}\n`
-        ) +
-        chalk.white(
-          `  ${chalk.cyan("2.")} ${chalk.magenta(
-            pm === "npm" ? "npm run dev" : pm + " dev"
+      "\n\n" +
+      `Your Next.js project ${chalk.cyan.bold(
+        projectName
+      )} has been created!\n` +
+      chalk.gray("━".repeat(60)) +
+      "\n\n" +
+      chalk.yellow.bold(" Quick Start:\n") +
+      chalk.white(
+        `  ${chalk.cyan("1.")} cd ${chalk.magenta(projectName)}\n`
+      ) +
+      chalk.white(
+        `  ${chalk.cyan("2.")} ${chalk.magenta(
+          pm === "npm" ? "npm run dev" : pm + " dev"
+        )}\n`
+      ) +
+      chalk.white(
+        `  ${chalk.cyan("3.")} Open ${chalk.magenta(
+          "http://localhost:3000"
+        )}\n\n`
+      ) +
+      chalk.yellow.bold("📦 Useful Commands:\n") +
+      chalk.white(
+        `  ${chalk.cyan("Build:")}       ${chalk.magenta(
+          pm === "npm" ? "npm run build" : pm + " build"
+        )}\n`
+      ) +
+      chalk.white(
+        `  ${chalk.cyan("Lint:")}        ${chalk.magenta(
+          pm === "npm" ? "npm run lint" : pm + " lint"
+        )}\n`
+      ) +
+      (config.vitest
+        ? chalk.white(
+          `  ${chalk.cyan("Test:")}        ${chalk.magenta(
+            pm === "npm" ? "npm test" : pm + " test"
           )}\n`
-        ) +
-        chalk.white(
-          `  ${chalk.cyan("3.")} Open ${chalk.magenta(
-            "http://localhost:3000"
-          )}\n\n`
-        ) +
-        chalk.yellow.bold("📦 Useful Commands:\n") +
-        chalk.white(
-          `  ${chalk.cyan("Build:")}       ${chalk.magenta(
-            pm === "npm" ? "npm run build" : pm + " build"
+        )
+        : "") +
+      (config.playwright
+        ? chalk.white(
+          `  ${chalk.cyan("E2E Test:")}    ${chalk.magenta(
+            pm === "npm" ? "npm run test:e2e" : pm + " test:e2e"
           )}\n`
-        ) +
-        chalk.white(
-          `  ${chalk.cyan("Lint:")}        ${chalk.magenta(
-            pm === "npm" ? "npm run lint" : pm + " lint"
+        )
+        : "") +
+      (config.storybook
+        ? chalk.white(
+          `  ${chalk.cyan("Storybook:")}   ${chalk.magenta(
+            pm === "npm" ? "npm run storybook" : pm + " storybook"
           )}\n`
-        ) +
-        (config.vitest
-          ? chalk.white(
-              `  ${chalk.cyan("Test:")}        ${chalk.magenta(
-                pm === "npm" ? "npm test" : pm + " test"
-              )}\n`
-            )
-          : "") +
-        (config.playwright
-          ? chalk.white(
-              `  ${chalk.cyan("E2E Test:")}    ${chalk.magenta(
-                pm === "npm" ? "npm run test:e2e" : pm + " test:e2e"
-              )}\n`
-            )
-          : "") +
-        (config.storybook
-          ? chalk.white(
-              `  ${chalk.cyan("Storybook:")}   ${chalk.magenta(
-                pm === "npm" ? "npm run storybook" : pm + " storybook"
-              )}\n`
-            )
-          : "") +
-        "\n" +
-        chalk.yellow.bold(" Documentation:\n") +
-        chalk.white(
-          `  ${chalk.cyan("•")} Check out ${chalk.magenta(
-            "README.md"
-          )} for detailed setup\n`
-        ) +
-        (config.orm === "prisma" || config.orm === "drizzle"
-          ? chalk.white(
-              `  ${chalk.cyan("•")} Configure ${chalk.magenta(
-                ".env"
-              )} for database connection\n`
-            )
-          : "") +
-        (config.auth !== "none"
-          ? chalk.white(
-              `  ${chalk.cyan("•")} Set up ${chalk.magenta(
-                config.auth === "next-auth" ? "NextAuth" : "Clerk"
-              )} environment variables\n`
-            )
-          : "") +
-        chalk.white(
-          `  ${chalk.cyan("•")} Review ${chalk.magenta(
-            ".env.example"
-          )} for all config options\n\n`
-        ) +
-        chalk.yellow.bold(" Pro Tips:\n") +
-        chalk.white(
-          `  ${chalk.cyan("•")} Star the repo: ${chalk.blue.underline(
-            "https://github.com/PrabothCharith/nxt-gen-cli.git"
-          )}\n`
-        ) +
-        chalk.white(
-          `  ${chalk.cyan("•")} Report issues or suggest features on GitHub\n`
-        ) +
-        chalk.white(
-          `  ${chalk.cyan(
-            "•"
-          )} Share your feedback to help improve nxt-gen!\n\n`
-        ) +
-        chalk.gray("━".repeat(60)) +
-        "\n" +
-        chalk.white("Happy coding! ") +
-        chalk.gray("Built by ") +
-        chalk.cyan.bold("Praboth Charith\n") +
-        chalk.blue.underline("https://praboth.me"),
+        )
+        : "") +
+      "\n" +
+      chalk.yellow.bold(" Documentation:\n") +
+      chalk.white(
+        `  ${chalk.cyan("•")} Check out ${chalk.magenta(
+          "README.md"
+        )} for detailed setup\n`
+      ) +
+      (config.orm === "prisma" || config.orm === "drizzle"
+        ? chalk.white(
+          `  ${chalk.cyan("•")} Configure ${chalk.magenta(
+            ".env"
+          )} for database connection\n`
+        )
+        : "") +
+      (config.auth !== "none"
+        ? chalk.white(
+          `  ${chalk.cyan("•")} Set up ${chalk.magenta(
+            config.auth === "next-auth" ? "NextAuth" : "Clerk"
+          )} environment variables\n`
+        )
+        : "") +
+      chalk.white(
+        `  ${chalk.cyan("•")} Review ${chalk.magenta(
+          ".env.example"
+        )} for all config options\n\n`
+      ) +
+      chalk.yellow.bold(" Pro Tips:\n") +
+      chalk.white(
+        `  ${chalk.cyan("•")} Star the repo: ${chalk.blue.underline(
+          "https://github.com/PrabothCharith/nxt-gen-cli.git"
+        )}\n`
+      ) +
+      chalk.white(
+        `  ${chalk.cyan("•")} Report issues or suggest features on GitHub\n`
+      ) +
+      chalk.white(
+        `  ${chalk.cyan(
+          "•"
+        )} Share your feedback to help improve nxt-gen!\n\n`
+      ) +
+      chalk.gray("━".repeat(60)) +
+      "\n" +
+      chalk.white("Happy coding! ") +
+      chalk.gray("Built by ") +
+      chalk.cyan.bold("Praboth Charith\n") +
+      chalk.blue.underline("https://praboth.me"),
       {
         padding: 1,
         margin: 1,
@@ -385,45 +387,45 @@ export const scaffoldProject = async (
   );
   console.log(
     chalk.hex("#eb5939").bold("  ║     ") +
-      chalk
-        .hex("#eb5939")
-        .bold("███╗   ██╗██╗  ██╗████████╗      ██████╗ ███████╗███╗   ██╗") +
-      chalk.hex("#eb5939").bold("     ║")
+    chalk
+      .hex("#eb5939")
+      .bold("███╗   ██╗██╗  ██╗████████╗      ██████╗ ███████╗███╗   ██╗") +
+    chalk.hex("#eb5939").bold("     ║")
   );
   console.log(
     chalk.hex("#eb5939").bold("  ║     ") +
-      chalk
-        .hex("#eb5939")
-        .bold("████╗  ██║╚██╗██╔╝╚══██╔══╝     ██╔════╝ ██╔════╝████╗  ██║") +
-      chalk.hex("#eb5939").bold("     ║")
+    chalk
+      .hex("#eb5939")
+      .bold("████╗  ██║╚██╗██╔╝╚══██╔══╝     ██╔════╝ ██╔════╝████╗  ██║") +
+    chalk.hex("#eb5939").bold("     ║")
   );
   console.log(
     chalk.hex("#eb5939").bold("  ║     ") +
-      chalk
-        .hex("#eb5939")
-        .bold("██╔██╗ ██║ ╚███╔╝    ██║        ██║  ███╗█████╗  ██╔██╗ ██║") +
-      chalk.hex("#eb5939").bold("     ║")
+    chalk
+      .hex("#eb5939")
+      .bold("██╔██╗ ██║ ╚███╔╝    ██║        ██║  ███╗█████╗  ██╔██╗ ██║") +
+    chalk.hex("#eb5939").bold("     ║")
   );
   console.log(
     chalk.hex("#eb5939").bold("  ║     ") +
-      chalk
-        .hex("#eb5939")
-        .bold("██║╚██╗██║ ██╔██╗    ██║        ██║   ██║██╔══╝  ██║╚██╗██║") +
-      chalk.hex("#eb5939").bold("     ║")
+    chalk
+      .hex("#eb5939")
+      .bold("██║╚██╗██║ ██╔██╗    ██║        ██║   ██║██╔══╝  ██║╚██╗██║") +
+    chalk.hex("#eb5939").bold("     ║")
   );
   console.log(
     chalk.hex("#eb5939").bold("  ║     ") +
-      chalk
-        .hex("#eb5939")
-        .bold("██║ ╚████║██╔╝ ██╗   ██║███████╗╚██████╔╝███████╗██║ ╚████║") +
-      chalk.hex("#eb5939").bold("     ║")
+    chalk
+      .hex("#eb5939")
+      .bold("██║ ╚████║██╔╝ ██╗   ██║███████╗╚██████╔╝███████╗██║ ╚████║") +
+    chalk.hex("#eb5939").bold("     ║")
   );
   console.log(
     chalk.hex("#eb5939").bold("  ║     ") +
-      chalk
-        .hex("#eb5939")
-        .bold("╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝╚══════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝") +
-      chalk.hex("#eb5939").bold("     ║")
+    chalk
+      .hex("#eb5939")
+      .bold("╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝╚══════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝") +
+    chalk.hex("#eb5939").bold("     ║")
   );
   console.log(
     chalk
@@ -451,8 +453,8 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-between p-24">
       <h1 className="text-4xl font-bold">Welcome to ${path.basename(
-        projectPath
-      )}</h1>
+      projectPath
+    )}</h1>
     </div>
   );
 }
@@ -878,8 +880,8 @@ async function setupStorybook(
     console.log(
       chalk.yellow(
         "\nTo set up Storybook manually, run:\n" +
-          `  cd ${path.basename(projectPath)}\n` +
-          `  npx storybook@latest init\n`
+        `  cd ${path.basename(projectPath)}\n` +
+        `  npx storybook@latest init\n`
       )
     );
   }
@@ -997,4 +999,24 @@ async function setupIntl(projectPath: string, deps: DependencyCollector) {
   );
 
   spinner.succeed("Internationalization setup complete");
+}
+
+async function setupOrval(projectPath: string, deps: DependencyCollector) {
+  const spinner = ora("Setting up Orval...").start();
+
+  deps.addDevDep("orval");
+
+  await fs.writeFile(
+    path.join(projectPath, "orval.config.ts"),
+    orvalConfig
+  );
+
+  // Add gen script
+  const packageJsonPath = path.join(projectPath, "package.json");
+  const pkg = await fs.readJson(packageJsonPath);
+  if (!pkg.scripts) pkg.scripts = {};
+  pkg.scripts.gen = "orval";
+  await fs.writeJson(packageJsonPath, pkg, { spaces: 2 });
+
+  spinner.succeed("Orval setup complete");
 }
