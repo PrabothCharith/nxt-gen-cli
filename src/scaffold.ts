@@ -55,7 +55,11 @@ import {
   getDlxCommand,
   PackageManager,
 } from "./lib/pm.js";
-import { addProviderToLayout, configureTailwindForHeroUI } from "./lib/ast.js";
+import {
+  addProviderToLayout,
+  configureTailwindForHeroUI,
+  configureGlobalCssForHeroUI,
+} from "./lib/ast.js";
 import { DependencyCollector } from "./lib/deps.js";
 import prompts from "prompts";
 
@@ -608,26 +612,17 @@ export function cn(...inputs: ClassValue[]) {
     const configExists = await fs.pathExists(tailwindConfigPath);
 
     if (!configExists) {
-      // Create a fresh config compatible with HeroUI
+      // Assuming Tailwind v4 if config is missing
+      // 1. Create hero.ts
       await fs.writeFile(
-        tailwindConfigPath,
-        `
-import type { Config } from "tailwindcss";
-import {heroui} from '@heroui/react';
+        path.join(projectPath, "hero.ts"),
+        `import { heroui } from "@heroui/react";
 
-const config: Config = {
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}"
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [heroui()],
-};
-export default config;
-`
+export default heroui();`
       );
+
+      // 2. Configure globals.css for v4
+      await configureGlobalCssForHeroUI(projectPath);
     } else {
       await configureTailwindForHeroUI(projectPath);
     }

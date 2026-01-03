@@ -176,3 +176,33 @@ export async function configureTailwindForHeroUI(projectPath: string) {
 
   await sourceFile.save();
 }
+
+export async function configureGlobalCssForHeroUI(projectPath: string) {
+  const cssPath = path.join(projectPath, "src/app/globals.css");
+  if (!fs.existsSync(cssPath)) return;
+
+  let content = await fs.readFile(cssPath, "utf-8");
+
+  // Check if it's already configured to avoid duplication
+  if (content.includes("@plugin './hero.ts';")) return;
+
+  // Replace default tailwind import with v4 setup
+  // We assume standard create-next-app output which usually starts with directives
+  // Or just prepend/replace the top part.
+
+  const v4Setup = `@import "tailwindcss";
+@plugin './hero.ts';
+@source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@custom-variant dark (&:is(.dark *));
+
+`;
+
+  if (content.includes('@import "tailwindcss";')) {
+    content = content.replace('@import "tailwindcss";', v4Setup);
+  } else {
+    // Fallback: Prepend if no standard import found (though unlikely in fresh v4 app)
+    content = v4Setup + content;
+  }
+
+  await fs.writeFile(cssPath, content);
+}
