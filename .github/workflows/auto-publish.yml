@@ -1,22 +1,29 @@
 name: Auto Publish on Main
 
 on:
-  workflow_dispatch:
   push:
     branches:
-      - development # Temporarily trigger on dev push for testing if needed
+      - main # Trigger on every successful merge to main
 
 permissions:
-  contents: read
-  packages: write
   id-token: write
+  contents: write # Required for pushing tags and creating releases
+  packages: write # Required for publishing to GitHub Packages
 
 jobs:
-  test-publish:
+  publish:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Get version from package.json
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "package_version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Publishing version $VERSION"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,20 +37,56 @@ jobs:
       - name: Build package
         run: npm run build
 
-      - name: Publish to GitHub Packages (Test)
+      - name: Run Smoke Check
+        run: npm run test:smoke
+
+      - name: Publish to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to GitHub Packages
         run: |
-          # Configure npm to use GitHub Packages registry with explicit auth
-          # Using project-level .npmrc to override any defaults
+          # Configure npm to use GitHub Packages registry
           echo "@PrabothCharith:registry=https://npm.pkg.github.com" > .npmrc
           echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" >> .npmrc
-          
           # Temporarily change the package name to the scoped version for GPR
           npm pkg set name="@PrabothCharith/nxt-gen-cli"
-          
-          # Set a unique test version to avoid conflicts
-          npm version 0.0.0-test-$(date +%s) --no-git-tag-version
-          
-          # Publish using the GITHUB_TOKEN
+          # Publish using the GH_TOKEN
           npm publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Create Git Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ steps.version.outputs.package_version }}" -m "Release v${{ steps.version.outputs.package_version }}" || true
+          git push origin "v${{ steps.version.outputs.package_version }}" || true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.package_version }}
+          name: Release ${{ steps.version.outputs.package_version }}
+          body: |
+            ## Release v${{ steps.version.outputs.package_version }}
+
+            ### Install
+            ```bash
+            npx nxt-gen-cli@${{ steps.version.outputs.package_version }}
+            ```
+
+            Or install globally:
+            ```bash
+            npm install -g nxt-gen-cli@${{ steps.version.outputs.package_version }}
+            ```
+
+            ### GitHub Packages
+            ```bash
+            npm install @PrabothCharith/nxt-gen-cli@${{ steps.version.outputs.package_version }}
+            ```
+          draft: false
+          prerelease: false
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
