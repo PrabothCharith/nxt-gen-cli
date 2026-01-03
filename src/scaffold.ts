@@ -244,6 +244,13 @@ export const scaffoldProject = async (
       } catch (error) {
         spinner.fail("Installation failed");
         console.log(chalk.red("\nError:"), error);
+
+        console.log(chalk.yellow("\nTroubleshooting Tips:"));
+        console.log(chalk.white("  • If you see 'EACCES' or permission errors, try running:"));
+        console.log(chalk.cyan("    sudo chown -R $(whoami) ~/.npm"));
+        console.log(chalk.white("  • If you see 'EEXIST' or cache errors, try:"));
+        console.log(chalk.cyan("    npm cache clean --force"));
+
         console.log(chalk.yellow("\nYou can install dependencies manually:"));
         console.log(chalk.cyan(`  cd ${projectName}`));
         console.log(chalk.cyan(`  ${pm} install`));
