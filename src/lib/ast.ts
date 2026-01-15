@@ -191,7 +191,7 @@ export async function configureGlobalCssForHeroUI(projectPath: string) {
   // Or just prepend/replace the top part.
 
   const v4Setup = `@import "tailwindcss";
-@plugin './hero.ts';
+@plugin '../../hero.ts';
 @source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
 

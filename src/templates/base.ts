@@ -53,7 +53,7 @@ if (process.env.NODE_ENV !== 'production') globalThis.prisma = prisma;
 `;
 
 export const axiosClient = `
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 
 export const api = axios.create({
   baseURL: '/api',
@@ -61,6 +61,16 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+export const backendApi = <T>(
+  config: AxiosRequestConfig,
+  options?: AxiosRequestConfig
+): Promise<T> => {
+  return api({
+    ...config,
+    ...options,
+  }).then(({ data }) => data);
+};
 `;
 
 export const queryProvider = `
