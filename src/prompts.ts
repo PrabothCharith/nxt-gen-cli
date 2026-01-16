@@ -1,5 +1,5 @@
 import prompts from "prompts";
-import { PackageManager } from "./lib/pm.js";
+import { PackageManager, PACKAGE_MANAGERS } from "./lib/pm.js";
 
 export interface ProjectConfig {
   packageManager?: PackageManager;
@@ -65,12 +65,7 @@ export async function initialPrompt(
         type: options.packageManager !== undefined ? null : "select",
         name: "packageManager",
         message: "Which package manager would you like to use?",
-        choices: [
-          { title: "npm", value: "npm" },
-          { title: "pnpm", value: "pnpm" },
-          { title: "yarn", value: "yarn" },
-          { title: "bun", value: "bun" },
-        ],
+        choices: PACKAGE_MANAGERS.map(pm => ({ title: pm, value: pm })),
         initial: 0,
       },
       {

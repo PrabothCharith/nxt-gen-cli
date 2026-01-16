@@ -11,14 +11,27 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Import PACKAGE_MANAGERS constant from compiled pm.js
+// Import PACKAGE_MANAGERS constant from compiled pm.js or fallback to reading source
 let PACKAGE_MANAGERS;
 try {
   const pmModule = await import('../dist/lib/pm.js');
   PACKAGE_MANAGERS = pmModule.PACKAGE_MANAGERS;
 } catch {
-  // Fallback if dist not available
-  PACKAGE_MANAGERS = ['npm', 'pnpm', 'yarn', 'bun'];
+  // Fallback: read from source file if dist not available
+  try {
+    const pmSourcePath = path.join(__dirname, '..', 'src', 'lib', 'pm.ts');
+    const pmSource = fs.readFileSync(pmSourcePath, 'utf-8');
+    const match = pmSource.match(/export const PACKAGE_MANAGERS.*=\s*\[(.*?)\]/s);
+    if (match) {
+      PACKAGE_MANAGERS = match[1].split(',').map(s => s.trim().replace(/['"]/g, ''));
+    } else {
+      throw new Error('Could not parse PACKAGE_MANAGERS from source');
+    }
+  } catch (error) {
+    console.error('  ✗ Could not load PACKAGE_MANAGERS constant');
+    console.error('  Please run "npm run build" first');
+    process.exit(1);
+  }
 }
 
 console.log('='.repeat(60));
