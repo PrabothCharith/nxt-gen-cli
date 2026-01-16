@@ -97,6 +97,7 @@ export async function main() {
     .description("Create Next.js Project with Custom Features")
     .version(pkg.version)
     .argument("[name]", "Project name")
+    .option("--pm <type>", "Package Manager (npm, pnpm, yarn, bun)")
     .option("--orm <type>", "ORM (prisma, drizzle, none)")
     .option("--react-query [boolean]", "Install React Query")
     .option("--axios [boolean]", "Install Axios")
@@ -140,6 +141,12 @@ export async function main() {
           )
         );
         process.exit(1);
+      }
+
+      // Normalize pm option to packageManager
+      if (options.pm) {
+        options.packageManager = options.pm;
+        delete options.pm;
       }
 
       const config = await initialPrompt(options);

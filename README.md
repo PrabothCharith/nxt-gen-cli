@@ -65,11 +65,14 @@ You will be guided to select your preferred tools:
 For power users, skip the prompts by passing flags directly:
 
 ```bash
-# Create a full-stack app
-npx nxt-gen-cli my-app --orm prisma --ui shadcn --auth next-auth --react-query --pnpm
+# Create a full-stack app with pnpm
+npx nxt-gen-cli my-app --pm pnpm --orm prisma --ui shadcn --auth next-auth --react-query
 
-# Create a minimal API service
-npx nxt-gen-cli api-service --orm drizzle --docker --ci
+# Create a minimal API service with yarn
+npx nxt-gen-cli api-service --pm yarn --orm drizzle --docker --ci
+
+# Create a project with bun
+npx nxt-gen-cli my-bun-app --pm bun --ui shadcn --react-query
 ```
 
 ## Features
@@ -119,6 +122,7 @@ Arguments:
   name                    Project name (prompted if not provided)
 
 Options:
+  --pm <type>             Package Manager: npm, pnpm, yarn, bun
   --orm <type>            ORM: prisma, drizzle, none
   --auth <type>           Auth Provider: next-auth, clerk, none
   --ui <type>             UI Library: shadcn, heroui, both, none
