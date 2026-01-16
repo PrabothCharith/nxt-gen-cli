@@ -1,5 +1,7 @@
 export type PackageManager = "npm" | "pnpm" | "yarn" | "bun";
 
+export const PACKAGE_MANAGERS: readonly PackageManager[] = ["npm", "pnpm", "yarn", "bun"];
+
 export function detectPackageManager(): PackageManager {
   const userAgent = process.env.npm_config_user_agent;
   if (!userAgent) return "npm";

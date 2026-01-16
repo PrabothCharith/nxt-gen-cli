@@ -11,6 +11,16 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Import PACKAGE_MANAGERS constant from compiled pm.js
+let PACKAGE_MANAGERS;
+try {
+  const pmModule = await import('../dist/lib/pm.js');
+  PACKAGE_MANAGERS = pmModule.PACKAGE_MANAGERS;
+} catch {
+  // Fallback if dist not available
+  PACKAGE_MANAGERS = ['npm', 'pnpm', 'yarn', 'bun'];
+}
+
 console.log('='.repeat(60));
 console.log('Package Manager Selection Test');
 console.log('='.repeat(60));
@@ -36,8 +46,7 @@ try {
 
 // Test 2: Validate package manager types
 console.log('\n✓ Test 2: Package Manager Types');
-const pmTypes = ['npm', 'pnpm', 'yarn', 'bun'];
-console.log(`  ✓ Supported package managers: ${pmTypes.join(', ')}`);
+console.log(`  ✓ Supported package managers: ${PACKAGE_MANAGERS.join(', ')}`);
 
 // Test 3: Check dist files for package manager support
 console.log('\n✓ Test 3: Code Implementation');
@@ -63,7 +72,7 @@ try {
   const pmPath = path.join(__dirname, '..', 'src', 'lib', 'pm.ts');
   const pmContent = fs.readFileSync(pmPath, 'utf-8');
   
-  const hasAllPMs = pmTypes.every(pm => pmContent.includes(pm));
+  const hasAllPMs = PACKAGE_MANAGERS.every(pm => pmContent.includes(pm));
   if (hasAllPMs) {
     console.log('  ✓ All package managers supported in pm.ts');
   } else {
