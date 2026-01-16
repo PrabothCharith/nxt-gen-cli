@@ -21,14 +21,23 @@ try {
   try {
     const pmSourcePath = path.join(__dirname, '..', 'src', 'lib', 'pm.ts');
     const pmSource = fs.readFileSync(pmSourcePath, 'utf-8');
-    const match = pmSource.match(/export const PACKAGE_MANAGERS.*=\s*\[(.*?)\]/s);
+    // More robust parsing: handle multiline and various formats
+    const match = pmSource.match(/export const PACKAGE_MANAGERS[^=]*=\s*\[([\s\S]*?)\]/);
     if (match) {
-      PACKAGE_MANAGERS = match[1].split(',').map(s => s.trim().replace(/['"]/g, ''));
+      // Extract each quoted string
+      const arrayContent = match[1];
+      const stringMatches = arrayContent.match(/["']([^"']+)["']/g);
+      if (stringMatches) {
+        PACKAGE_MANAGERS = stringMatches.map(s => s.replace(/["']/g, ''));
+      } else {
+        throw new Error('Could not parse package manager values');
+      }
     } else {
-      throw new Error('Could not parse PACKAGE_MANAGERS from source');
+      throw new Error('Could not find PACKAGE_MANAGERS constant');
     }
   } catch (error) {
     console.error('  ✗ Could not load PACKAGE_MANAGERS constant');
+    console.error(`  Error: ${error.message}`);
     console.error('  Please run "npm run build" first');
     process.exit(1);
   }
@@ -41,7 +50,8 @@ console.log('='.repeat(60));
 // Test 1: Check if --pm flag is recognized
 console.log('\n✓ Test 1: CLI accepts --pm flag');
 try {
-  const output = execSync('node bin/nxt-gen-cli --help', {
+  const cliPath = path.join(__dirname, '..', 'bin', 'nxt-gen-cli');
+  const output = execSync(`node ${cliPath} --help`, {
     cwd: path.join(__dirname, '..'),
     encoding: 'utf-8'
   });

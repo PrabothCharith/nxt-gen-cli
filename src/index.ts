@@ -146,7 +146,7 @@ export async function main() {
 
       // Normalize and validate pm option
       if (options.pm) {
-        if (!PACKAGE_MANAGERS.includes(options.pm)) {
+        if (!PACKAGE_MANAGERS.includes(options.pm as any)) {
           console.log(
             chalk.red(
               `Invalid package manager: ${options.pm}. Must be one of: ${PACKAGE_MANAGERS.join(", ")}`
@@ -154,7 +154,7 @@ export async function main() {
           );
           process.exit(1);
         }
-        options.packageManager = options.pm;
+        options.packageManager = options.pm as any;
         delete options.pm;
       }
 
