@@ -143,8 +143,17 @@ export async function main() {
         process.exit(1);
       }
 
-      // Normalize pm option to packageManager
+      // Normalize and validate pm option
       if (options.pm) {
+        const validPms = ["npm", "pnpm", "yarn", "bun"];
+        if (!validPms.includes(options.pm)) {
+          console.log(
+            chalk.red(
+              `Invalid package manager: ${options.pm}. Must be one of: ${validPms.join(", ")}`
+            )
+          );
+          process.exit(1);
+        }
         options.packageManager = options.pm;
         delete options.pm;
       }

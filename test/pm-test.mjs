@@ -5,6 +5,7 @@
  */
 
 import { execSync } from 'child_process';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -41,27 +42,26 @@ console.log(`  ✓ Supported package managers: ${pmTypes.join(', ')}`);
 // Test 3: Check dist files for package manager support
 console.log('\n✓ Test 3: Code Implementation');
 try {
-  const distPrompts = execSync('cat dist/prompts.js | grep -i packagemanager | head -5', {
-    cwd: path.join(__dirname, '..'),
-    encoding: 'utf-8',
-    stdio: ['pipe', 'pipe', 'ignore']
-  }).trim();
-  
-  if (distPrompts) {
-    console.log('  ✓ Package manager implementation found in prompts.js');
+  const distPromptsPath = path.join(__dirname, '..', 'dist', 'prompts.js');
+  if (fs.existsSync(distPromptsPath)) {
+    const distPrompts = fs.readFileSync(distPromptsPath, 'utf-8');
+    if (distPrompts.toLowerCase().includes('packagemanager')) {
+      console.log('  ✓ Package manager implementation found in prompts.js');
+    } else {
+      console.log('  ⚠ Package manager implementation not found in dist files');
+    }
+  } else {
+    console.log('  ℹ Note: dist/prompts.js not found - build may be needed');
   }
 } catch (error) {
-  // grep returns non-zero if no match, but that's okay for this test
-  console.log('  ℹ Note: Check if build is up to date');
+  console.log('  ℹ Note: Could not check dist files');
 }
 
 // Test 4: Verify pm.ts has all package managers
 console.log('\n✓ Test 4: Package Manager Module');
 try {
-  const pmContent = execSync('cat src/lib/pm.ts', {
-    cwd: path.join(__dirname, '..'),
-    encoding: 'utf-8'
-  });
+  const pmPath = path.join(__dirname, '..', 'src', 'lib', 'pm.ts');
+  const pmContent = fs.readFileSync(pmPath, 'utf-8');
   
   const hasAllPMs = pmTypes.every(pm => pmContent.includes(pm));
   if (hasAllPMs) {
