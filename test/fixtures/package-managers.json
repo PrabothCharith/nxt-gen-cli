@@ -1,1 +1,6 @@
-["npm", "pnpm", "yarn", "bun"]
+[
+  "npm",
+  "pnpm",
+  "yarn",
+  "bun"
+]
