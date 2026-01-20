@@ -103,17 +103,27 @@ try {
   const pmContent = fs.readFileSync(pmPath, 'utf-8');
   
   // Extract PACKAGE_MANAGERS values from source for comparison
-  const match = pmContent.match(/export const PACKAGE_MANAGERS[^=]*=\s*\[(.*?)\]/s);
+  // Note: This is a simple regex-based check for a constant array of string literals.
+  // It's sufficient for validating sync but not a full TypeScript parser.
+  const match = pmContent.match(/export const PACKAGE_MANAGERS[^=]*=\s*\[(.*?)\]\s*[;,]?/s);
   if (!match) {
     console.error('  ✗ Could not parse PACKAGE_MANAGERS from source');
     process.exit(1);
   }
   
+  // Parse array values, handling both single and double quotes
   const sourceValues = match[1]
     .split(',')
     .map(v => v.trim())
     .filter(v => v)
-    .map(v => v.replace(/["'`]/g, ''));
+    .map(v => v.replace(/^["']|["']$/g, ''))
+    .filter(v => v); // Remove any empty strings
+  
+  // Ensure both are arrays of strings before comparing
+  if (!Array.isArray(fixturesData) || !fixturesData.every(v => typeof v === 'string')) {
+    console.error('  ✗ Fixtures must be an array of strings');
+    process.exit(1);
+  }
   
   const fixturesMatch = JSON.stringify(fixturesData.sort()) === JSON.stringify(sourceValues.sort());
   if (fixturesMatch) {
