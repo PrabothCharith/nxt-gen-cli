@@ -8,6 +8,7 @@ import updateNotifier from "update-notifier";
 import { createRequire } from "module";
 import { initialPrompt } from "./prompts.js";
 import { validateProjectName } from "./lib/validation.js";
+import { PACKAGE_MANAGERS, PackageManager } from "./lib/pm.js";
 
 const require = createRequire(import.meta.url);
 const pkg = require("../package.json");
@@ -97,6 +98,7 @@ export async function main() {
     .description("Create Next.js Project with Custom Features")
     .version(pkg.version)
     .argument("[name]", "Project name")
+    .option("--pm <type>", "Package Manager (npm, pnpm, yarn, bun)")
     .option("--orm <type>", "ORM (prisma, drizzle, none)")
     .option("--react-query [boolean]", "Install React Query")
     .option("--axios [boolean]", "Install Axios")
@@ -140,6 +142,33 @@ export async function main() {
           )
         );
         process.exit(1);
+      }
+
+      // Normalize and validate pm option
+      if (options.pm !== undefined && options.pm !== null) {
+        const rawPm = options.pm;
+        const normalizedPm =
+          typeof rawPm === "string" ? rawPm.trim() : rawPm;
+
+        if (normalizedPm === "") {
+          console.log(
+            chalk.red(
+              `Package manager value cannot be empty. Must be one of: ${PACKAGE_MANAGERS.join(", ")}`
+            )
+          );
+          process.exit(1);
+        }
+
+        if (!PACKAGE_MANAGERS.includes(normalizedPm as PackageManager)) {
+          console.log(
+            chalk.red(
+              `Invalid package manager: ${normalizedPm}. Must be one of: ${PACKAGE_MANAGERS.join(", ")}`
+            )
+          );
+          process.exit(1);
+        }
+        options.packageManager = normalizedPm as PackageManager;
+        delete options.pm;
       }
 
       const config = await initialPrompt(options);
