@@ -93,6 +93,43 @@ try {
   process.exit(1);
 }
 
+// Test 5: Validate fixtures are in sync with source
+console.log('\n✓ Test 5: Fixtures Validation');
+try {
+  const fixturesPath = path.join(__dirname, 'fixtures', 'package-managers.json');
+  const fixturesData = JSON.parse(fs.readFileSync(fixturesPath, 'utf-8'));
+  
+  const pmPath = path.join(__dirname, '..', 'src', 'lib', 'pm.ts');
+  const pmContent = fs.readFileSync(pmPath, 'utf-8');
+  
+  // Extract PACKAGE_MANAGERS values from source for comparison
+  const match = pmContent.match(/export const PACKAGE_MANAGERS[^=]*=\s*\[(.*?)\]/s);
+  if (!match) {
+    console.error('  ✗ Could not parse PACKAGE_MANAGERS from source');
+    process.exit(1);
+  }
+  
+  const sourceValues = match[1]
+    .split(',')
+    .map(v => v.trim())
+    .filter(v => v)
+    .map(v => v.replace(/["'`]/g, ''));
+  
+  const fixturesMatch = JSON.stringify(fixturesData.sort()) === JSON.stringify(sourceValues.sort());
+  if (fixturesMatch) {
+    console.log('  ✓ Fixtures file is in sync with source');
+  } else {
+    console.error('  ✗ Fixtures file is out of sync with source');
+    console.error(`  Source: [${sourceValues.join(', ')}]`);
+    console.error(`  Fixtures: [${fixturesData.join(', ')}]`);
+    process.exit(1);
+  }
+} catch (error) {
+  console.error('  ✗ Failed to validate fixtures');
+  console.error(`  Error: ${error.message}`);
+  process.exit(1);
+}
+
 console.log('\n' + '='.repeat(60));
 console.log('✓ All package manager tests passed!');
 console.log('='.repeat(60));
