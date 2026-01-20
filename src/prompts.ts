@@ -1,6 +1,8 @@
 import prompts from "prompts";
+import { PackageManager, PACKAGE_MANAGERS } from "./lib/pm.js";
 
 export interface ProjectConfig {
+  packageManager?: PackageManager;
   orm: "prisma" | "drizzle" | "none";
   reactQuery: boolean;
   axios: boolean;
@@ -59,6 +61,13 @@ export async function initialPrompt(
 
   const response = await prompts(
     [
+      {
+        type: options.packageManager !== undefined ? null : "select",
+        name: "packageManager",
+        message: "Which package manager would you like to use?",
+        choices: PACKAGE_MANAGERS.map(pm => ({ title: pm, value: pm })),
+        initial: 0,
+      },
       {
         type: options.orm !== undefined ? null : "select",
         name: "orm",

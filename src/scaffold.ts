@@ -68,7 +68,8 @@ export const scaffoldProject = async (
   config: ProjectConfig
 ) => {
   const projectPath = path.resolve(process.cwd(), projectName);
-  const pm = detectPackageManager();
+  // Use the package manager from config, or auto-detect as fallback
+  const pm = config.packageManager || detectPackageManager();
   const deps = new DependencyCollector();
 
   // Check if directory already exists
