@@ -18,8 +18,15 @@ try {
   PACKAGE_MANAGERS = pmModule.PACKAGE_MANAGERS;
 } catch {
   // Fallback: load from test fixtures file
-  const fixturesPath = path.join(__dirname, 'fixtures', 'package-managers.json');
-  PACKAGE_MANAGERS = JSON.parse(fs.readFileSync(fixturesPath, 'utf-8'));
+  try {
+    const fixturesPath = path.join(__dirname, 'fixtures', 'package-managers.json');
+    PACKAGE_MANAGERS = JSON.parse(fs.readFileSync(fixturesPath, 'utf-8'));
+  } catch (error) {
+    console.error('  ✗ Could not load PACKAGE_MANAGERS constant');
+    console.error(`  Error: ${error.message}`);
+    console.error('  Please run "npm run build" or check test/fixtures/package-managers.json');
+    process.exit(1);
+  }
 }
 
 console.log('='.repeat(60));
