@@ -8,7 +8,7 @@ import updateNotifier from "update-notifier";
 import { createRequire } from "module";
 import { initialPrompt } from "./prompts.js";
 import { validateProjectName } from "./lib/validation.js";
-import { PACKAGE_MANAGERS } from "./lib/pm.js";
+import { PACKAGE_MANAGERS, PackageManager } from "./lib/pm.js";
 
 const require = createRequire(import.meta.url);
 const pkg = require("../package.json");
@@ -145,16 +145,29 @@ export async function main() {
       }
 
       // Normalize and validate pm option
-      if (options.pm) {
-        if (!PACKAGE_MANAGERS.includes(options.pm as any)) {
+      if (options.pm !== undefined && options.pm !== null) {
+        const rawPm = options.pm;
+        const normalizedPm =
+          typeof rawPm === "string" ? rawPm.trim() : rawPm;
+
+        if (normalizedPm === "") {
           console.log(
             chalk.red(
-              `Invalid package manager: ${options.pm}. Must be one of: ${PACKAGE_MANAGERS.join(", ")}`
+              `Package manager value cannot be empty. Must be one of: ${PACKAGE_MANAGERS.join(", ")}`
             )
           );
           process.exit(1);
         }
-        options.packageManager = options.pm as any;
+
+        if (!PACKAGE_MANAGERS.includes(normalizedPm as PackageManager)) {
+          console.log(
+            chalk.red(
+              `Invalid package manager: ${normalizedPm}. Must be one of: ${PACKAGE_MANAGERS.join(", ")}`
+            )
+          );
+          process.exit(1);
+        }
+        options.packageManager = normalizedPm as PackageManager;
         delete options.pm;
       }
 

@@ -21,20 +21,64 @@ try {
   try {
     const pmSourcePath = path.join(__dirname, '..', 'src', 'lib', 'pm.ts');
     const pmSource = fs.readFileSync(pmSourcePath, 'utf-8');
-    // More robust parsing: handle multiline and various formats
-    const match = pmSource.match(/export const PACKAGE_MANAGERS[^=]*=\s*\[([\s\S]*?)\]/);
-    if (match) {
-      // Extract each quoted string
-      const arrayContent = match[1];
-      const stringMatches = arrayContent.match(/["']([^"']+)["']/g);
-      if (stringMatches) {
-        PACKAGE_MANAGERS = stringMatches.map(s => s.replace(/["']/g, ''));
-      } else {
-        throw new Error('Could not parse package manager values');
-      }
-    } else {
+
+    // Locate the PACKAGE_MANAGERS declaration
+    const declIndex = pmSource.indexOf('export const PACKAGE_MANAGERS');
+    if (declIndex === -1) {
       throw new Error('Could not find PACKAGE_MANAGERS constant');
     }
+
+    // Find the start of the array literal (`[`) after the equals sign
+    const equalsIndex = pmSource.indexOf('=', declIndex);
+    if (equalsIndex === -1) {
+      throw new Error('Could not find assignment for PACKAGE_MANAGERS');
+    }
+
+    const bracketStart = pmSource.indexOf('[', equalsIndex);
+    if (bracketStart === -1) {
+      throw new Error('Could not find opening bracket for PACKAGE_MANAGERS array');
+    }
+
+    // Walk forward to find the matching closing bracket, accounting for nested brackets
+    let depth = 0;
+    let bracketEnd = -1;
+    for (let i = bracketStart; i < pmSource.length; i++) {
+      const ch = pmSource[i];
+      if (ch === '[') {
+        depth++;
+      } else if (ch === ']') {
+        depth--;
+        if (depth === 0) {
+          bracketEnd = i;
+          break;
+        }
+      }
+    }
+
+    if (bracketEnd === -1) {
+      throw new Error('Could not find closing bracket for PACKAGE_MANAGERS array');
+    }
+
+    const arrayContent = pmSource.slice(bracketStart + 1, bracketEnd);
+
+    // Remove line and block comments to avoid confusing the string matcher
+    const withoutComments = arrayContent
+      .replace(/\/\/.*$/gm, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '');
+
+    // Match all string and template literals inside the array
+    const stringLiteralRegex = /(['"`])((?:\\.|(?!\1).)*)\1/g;
+    const values = [];
+    let match;
+    while ((match = stringLiteralRegex.exec(withoutComments)) !== null) {
+      values.push(match[2]);
+    }
+
+    if (values.length === 0) {
+      throw new Error('Could not parse package manager values');
+    }
+
+    PACKAGE_MANAGERS = values;
   } catch (error) {
     console.error('  ✗ Could not load PACKAGE_MANAGERS constant');
     console.error(`  Error: ${error.message}`);
