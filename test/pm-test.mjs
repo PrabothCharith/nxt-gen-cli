@@ -11,78 +11,20 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Import PACKAGE_MANAGERS constant from compiled pm.js or fallback to reading source
+// Import PACKAGE_MANAGERS constant from compiled pm.js or fallback to test fixtures
 let PACKAGE_MANAGERS;
 try {
   const pmModule = await import('../dist/lib/pm.js');
   PACKAGE_MANAGERS = pmModule.PACKAGE_MANAGERS;
 } catch {
-  // Fallback: read from source file if dist not available
+  // Fallback: load from test fixtures file
   try {
-    const pmSourcePath = path.join(__dirname, '..', 'src', 'lib', 'pm.ts');
-    const pmSource = fs.readFileSync(pmSourcePath, 'utf-8');
-
-    // Locate the PACKAGE_MANAGERS declaration
-    const declIndex = pmSource.indexOf('export const PACKAGE_MANAGERS');
-    if (declIndex === -1) {
-      throw new Error('Could not find PACKAGE_MANAGERS constant');
-    }
-
-    // Find the start of the array literal (`[`) after the equals sign
-    const equalsIndex = pmSource.indexOf('=', declIndex);
-    if (equalsIndex === -1) {
-      throw new Error('Could not find assignment for PACKAGE_MANAGERS');
-    }
-
-    const bracketStart = pmSource.indexOf('[', equalsIndex);
-    if (bracketStart === -1) {
-      throw new Error('Could not find opening bracket for PACKAGE_MANAGERS array');
-    }
-
-    // Walk forward to find the matching closing bracket, accounting for nested brackets
-    let depth = 0;
-    let bracketEnd = -1;
-    for (let i = bracketStart; i < pmSource.length; i++) {
-      const ch = pmSource[i];
-      if (ch === '[') {
-        depth++;
-      } else if (ch === ']') {
-        depth--;
-        if (depth === 0) {
-          bracketEnd = i;
-          break;
-        }
-      }
-    }
-
-    if (bracketEnd === -1) {
-      throw new Error('Could not find closing bracket for PACKAGE_MANAGERS array');
-    }
-
-    const arrayContent = pmSource.slice(bracketStart + 1, bracketEnd);
-
-    // Remove line and block comments to avoid confusing the string matcher
-    const withoutComments = arrayContent
-      .replace(/\/\/.*$/gm, '')
-      .replace(/\/\*[\s\S]*?\*\//g, '');
-
-    // Match all string and template literals inside the array
-    const stringLiteralRegex = /(['"`])((?:\\.|(?!\1).)*)\1/g;
-    const values = [];
-    let match;
-    while ((match = stringLiteralRegex.exec(withoutComments)) !== null) {
-      values.push(match[2]);
-    }
-
-    if (values.length === 0) {
-      throw new Error('Could not parse package manager values');
-    }
-
-    PACKAGE_MANAGERS = values;
+    const fixturesPath = path.join(__dirname, 'fixtures', 'package-managers.json');
+    PACKAGE_MANAGERS = JSON.parse(fs.readFileSync(fixturesPath, 'utf-8'));
   } catch (error) {
     console.error('  ✗ Could not load PACKAGE_MANAGERS constant');
     console.error(`  Error: ${error.message}`);
-    console.error('  Please run "npm run build" first');
+    console.error('  Please run "npm run build" or check test/fixtures/package-managers.json');
     process.exit(1);
   }
 }
@@ -148,6 +90,52 @@ try {
   }
 } catch (error) {
   console.error('  ✗ Failed to read pm.ts');
+  process.exit(1);
+}
+
+// Test 5: Validate fixtures are in sync with source
+console.log('\n✓ Test 5: Fixtures Validation');
+try {
+  const fixturesPath = path.join(__dirname, 'fixtures', 'package-managers.json');
+  const fixturesData = JSON.parse(fs.readFileSync(fixturesPath, 'utf-8'));
+  
+  const pmPath = path.join(__dirname, '..', 'src', 'lib', 'pm.ts');
+  const pmContent = fs.readFileSync(pmPath, 'utf-8');
+  
+  // Extract PACKAGE_MANAGERS values from source for comparison
+  // Note: This is a simple regex-based check for a constant array of string literals.
+  // It's sufficient for validating sync but not a full TypeScript parser.
+  const match = pmContent.match(/export const PACKAGE_MANAGERS[^=]*=\s*\[(.*?)\]/s);
+  if (!match) {
+    console.error('  ✗ Could not parse PACKAGE_MANAGERS from source');
+    process.exit(1);
+  }
+  
+  // Parse array values, handling both single and double quotes
+  const sourceValues = match[1]
+    .split(',')
+    .map(v => v.trim())
+    .filter(v => v)
+    .map(v => v.replace(/^['"]|['"]$/g, ''));
+  
+  // Ensure both are arrays of strings before comparing
+  if (!Array.isArray(fixturesData) || !fixturesData.every(v => typeof v === 'string')) {
+    console.error('  ✗ Fixtures must be an array of strings');
+    process.exit(1);
+  }
+  
+  const fixturesMatch = JSON.stringify(fixturesData.sort()) === JSON.stringify(sourceValues.sort());
+  if (fixturesMatch) {
+    console.log('  ✓ Fixtures file is in sync with source');
+  } else {
+    console.error('  ✗ Fixtures file is out of sync with source');
+    console.error(`  Source: [${sourceValues.join(', ')}]`);
+    console.error(`  Fixtures: [${fixturesData.join(', ')}]`);
+    process.exit(1);
+  }
+} catch (error) {
+  console.error('  ✗ Failed to validate fixtures');
+  console.error(`  Error: ${error.message}`);
   process.exit(1);
 }
 
